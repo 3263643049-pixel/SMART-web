@@ -1,0 +1,2767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMART · 杀马特视觉档案 / A Visual Archive of Shamate</title>
+  <meta name="description" content="An online visual archive of the Chinese subculture Shamate (杀马特): aesthetics, class, and resistance of identity." />
+  <link rel="stylesheet" href="style.css" />
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+
+/* ===== CLEAN ARCHIVE BASE ===== */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden !important;
+}
+
+body {
+  display: block !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  background:  #000000;
+}
+
+/* horizontal stage */
+/* ===== continuous horizontal canvas: no snap ===== */
+
+html,
+body {
+  overscroll-behavior: none !important;
+}
+
+#horizontalStage {
+  scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+  overscroll-behavior: none !important;
+}
+
+#horizontalStage > section {
+  scroll-snap-align: none !important;
+}
+#horizontalStage {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+  background: #000000 !important;
+}
+
+#horizontalStage > section {
+  flex: 0 0 100vw !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  min-height: 100vh !important;
+  max-height: 100vh !important;
+  position: relative !important;
+  overflow: hidden !important;
+  scroll-snap-align: none !important;
+  background: #000000 !important;
+}
+
+#horizontalStage .chapter {
+  border-top: none !important;
+  border-left: 1px solid rgba(255,255,255,0.22) !important;
+  background: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* ===== CLEAN TOP BAR ===== */
+/* ===== CLEAN TOP BAR ===== */
+
+.archive-topbar {
+  position: fixed;
+  top: 18px;
+  left: 22px;
+  right: 150px;
+  height: 52px;
+  z-index: 200;
+
+  display: grid;
+  grid-template-columns: 300px max-content auto;
+  align-items: start;
+  column-gap: 34px;
+}
+
+/* logo：放大，但仍然顶部对齐 */
+.archive-logo {
+  width: 300px;
+  height: 170px;
+  margin-top: -30px;
+  pointer-events: none;
+}
+
+.archive-logo-model {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: transparent !important;
+  --poster-color: transparent;
+}
+
+/* 00 01 02 03 04：字号变小，距离变近 */
+.archive-nav {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  padding: 0 20px;
+  min-width: 0;
+
+  border: 1px solid rgba(255,255,255,0.65);
+  border-radius: 999px;
+  background: #000000;
+}
+
+.archive-nav a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 42px;
+}
+
+.archive-nav a span {
+  color: #10bfdc;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.archive-nav a em {
+  font-style: normal;
+}
+
+/* Back 和 中/EN 一样小，跟导航顶部对齐 */
+.archive-back,
+.lang-toggle {
+  height: 42px !important;
+  padding: 0 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid rgba(255,255,255,0.65) !important;
+  border-radius: 999px !important;
+  background:  #000000 !important;
+  color:  #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+}
+
+.archive-back {
+  position: fixed !important;
+  top: 18px !important;
+  right: 150px !important;
+  z-index: 210 !important;
+}
+
+.lang-toggle {
+  position: fixed !important;
+  top: 18px !important;
+  right: 32px !important;
+  z-index: 210 !important;
+}
+
+/* hide unused legacy things from external CSS */
+.brand,
+.scatter-nav,
+.cover-title,
+.pos-cover-sub-zh,
+.pos-cover-sub-en,
+.pos-cover-abstract,
+.pos-cover-abstract-en,
+.cover-toc,
+.pos-cover-toc,
+.pos-cover-kicker,
+body > div[style*="background:red"] {
+  display: none !important;
+}
+
+.timeline {
+  z-index: 70 !important;
+  background: transparent !important;
+}
+
+.timeline-line {
+  background: rgba(255,255,255,0.35) !important;
+}
+
+.t-label {
+  color: rgba(255,255,255,0.75) !important;
+}
+
+.t-mark {
+  pointer-events: auto !important;
+}
+.chapter,
+.chapter p,
+.chapter h1,
+.chapter h2,
+.chapter h3,
+.chapter span,
+.chapter div,
+.colophon,
+.colophon p {
+  color: #ffffff !important;
+}
+/* ===== TEMP archive image placeholder ===== */
+
+.thumb,
+.ph1,
+.ph2,
+.ph3,
+.ph4,
+.ph5 {
+  background: url("./images/archive-temp.jpg") center / cover no-repeat !important;
+  background-color: transparent !important;
+}
+
+/* 关掉所有红色占位遮罩 */
+.thumb::before,
+.thumb::after,
+.ph1::before,
+.ph1::after,
+.ph2::before,
+.ph2::after,
+.ph3::before,
+.ph3::after,
+.ph4::before,
+.ph4::after,
+.ph5::before,
+.ph5::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 如果旧 CSS 里有 img，也先隐藏 */
+.thumb-img {
+  display: none !important;
+}
+ 
+/* ===== 01 from Figma: 3 images + 3 text blocks ===== */
+
+#ch1 {
+  position: relative !important;
+}
+
+/* 01 的图片框 */
+#ch1 .a01-img {
+  position: absolute !important;
+  display: block !important;
+  margin: 0 !important;
+  background: #b6b6b6 !important;
+  overflow: hidden !important;
+}
+
+/* 01 的文字框 */
+#ch1 .a01-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+
+  font-size: 0.833vw !important;
+  line-height: 1.18 !important;
+  font-weight: 100 !important;
+
+  letter-spacing: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* ---------- 图片 ---------- */
+
+/* a01-img-1
+   屏幕 01
+   X 112 / Y 270 / W 400 / H 430 */
+#ch1 .a01-img-1 {
+  left: 5.83vw !important;
+  top: 25vh !important;
+  width: 20.83vw !important;
+  height: 39.81vh !important;
+}
+
+/* a01-img-2
+   屏幕 01
+   X 976 / Y 629 / W 256 / H 181 */
+#ch1 .a01-img-2 {
+  left: 50.83vw !important;
+  top: 58.24vh !important;
+  width: 13.33vw !important;
+  height: 16.76vh !important;
+}
+
+/* a01-img-3
+   屏幕 01
+   X 1408 / Y 359 / W 400 / H 451 */
+#ch1 .a01-img-3 {
+  left: 73.33vw !important;
+  top: 33.24vh !important;
+  width: 20.83vw !important;
+  height: 41.76vh !important;
+}
+
+/* ---------- 文字 ---------- */
+
+/* a01-text-1
+   X 112 / Y 732 / W 400 / H 76 */
+#ch1 .a01-text-1 {
+  left: 5.83vw !important;
+  top: 67.78vh !important;
+  width: 20.83vw !important;
+  height: 7.04vh !important;
+}
+
+/* a01-text-2
+   X 544 / Y 464 / W 400 / H 76 */
+#ch1 .a01-text-2 {
+  left: 28.33vw !important;
+  top: 42.96vh !important;
+  width: 20.83vw !important;
+  height: 7.04vh !important;
+}
+
+/* a01-text-3
+   X 1408 / Y 270 / W 400 / H 57 */
+#ch1 .a01-text-3 {
+  left: 73.33vw !important;
+  top: 25vh !important;
+  width: 20.83vw !important;
+  height: 5.28vh !important;
+}
+/* ===== force continuous horizontal scrolling ===== */
+
+html,
+body {
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+#horizontalStage {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scroll-snap-type: none !important;
+  scroll-behavior: auto !important;
+  overscroll-behavior: none !important;
+}
+
+#horizontalStage > section {
+  scroll-snap-align: none !important;
+}
+/* ===== 02 from Figma: 4 image blocks ===== */
+
+#ch2 {
+  position: relative !important;
+}
+
+#ch2 .a02-img {
+  position: absolute !important;
+  margin: 0 !important;
+  background: #b6b6b6 !important;
+  display: block !important;
+}
+
+/* X 32 / Y 540 / W 480 / H 270 */
+#ch2 .a02-img-1 {
+  left: 1.67vw !important;
+  top: 50vh !important;
+  width: 25vw !important;
+  height: 25vh !important;
+}
+
+/* X 544 / Y 416 / W 256 / H 256 */
+#ch2 .a02-img-2 {
+  left: 28.33vw !important;
+  top: 38.52vh !important;
+  width: 13.33vw !important;
+  height: 23.70vh !important;
+}
+
+/* X 976 / Y 416 / W 400 / H 328 */
+#ch2 .a02-img-3 {
+  left: 50.83vw !important;
+  top: 38.52vh !important;
+  width: 20.83vw !important;
+  height: 30.37vh !important;
+}
+
+/* X 1408 / Y 270 / W 496 / H 270 */
+#ch2 .a02-img-4 {
+  left: 73.33vw !important;
+  top: 25vh !important;
+  width: 25.83vw !important;
+  height: 25vh !important;
+}
+/* ===== hide section divider lines ===== */
+#horizontalStage .chapter,
+#horizontalStage > section {
+  border-left: none !important;
+  border-right: none !important;
+}
+/* ===== 02 from Figma: text blocks ===== */
+
+#ch2 .a02-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+
+  font-size: 0.833vw !important;
+  line-height: 1.18 !important;
+  font-weight: 100 !important;
+
+  letter-spacing: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* text 1
+   X 112 / Y 416 / W 400 / H 76 */
+#ch2 .a02-text-1 {
+  left: 1.67vw !important;
+  top: 38.52vh !important;
+  width: 20.83vw !important;
+  height: 7.04vh !important;
+}
+
+/* text 2
+   X 544 / Y 704 / W 400 / H 76 */
+#ch2 .a02-text-2 {
+  left: 28.33vw !important;
+  top: 65.19vh !important;
+  width: 20.83vw !important;
+  height: 7.04vh !important;
+}
+
+/* text 3
+   X 976 / Y 270 / W 400 / H 114 */
+#ch2 .a02-text-3 {
+  left: 50.83vw !important;
+  top: 25vh !important;
+  width: 20.83vw !important;
+  height: 10.56vh !important;
+}
+
+/* text 4
+   X 1408 / Y 772 / W 400 / H 38 */
+#ch2 .a02-text-4 {
+  left: 73.33vw !important;
+  top: 71.48vh !important;
+  width: 20.83vw !important;
+  height: 3.52vh !important;
+}
+/* ===== 03 from Figma: 5 image blocks ===== */
+
+#ch3 {
+  position: relative !important;
+}
+
+#ch3 .a03-img {
+  position: absolute !important;
+  display: block !important;
+  margin: 0 !important;
+  background: #b6b6b6 !important;
+  overflow: hidden !important;
+}
+
+/* a03-img-1
+   X 16 / Y 456 / W 496 / H 216 */
+#ch3 .a03-img-1 {
+  left: 0.8333vw !important;
+  top: 42.2222vh !important;
+  width: 25.8333vw !important;
+  height: 20vh !important;
+}
+
+/* a03-img-2
+   X 544 / Y 540 / W 400 / H 270 */
+#ch3 .a03-img-2 {
+  left: 28.3333vw !important;
+  top: 50vh !important;
+  width: 20.8333vw !important;
+  height: 25vh !important;
+}
+
+/* a03-img-3
+   X 976 / Y 404 / W 184 / H 137 */
+#ch3 .a03-img-3 {
+  left: 50.8333vw !important;
+  top: 37.4074vh !important;
+  width: 9.5833vw !important;
+  height: 12.6852vh !important;
+}
+
+/* a03-img-4
+   X 1192 / Y 404 / W 184 / H 324 */
+#ch3 .a03-img-4 {
+  left: 62.0833vw !important;
+  top: 37.4074vh !important;
+  width: 9.5833vw !important;
+  height: 30vh !important;
+}
+
+/* a03-img-5
+   X 1408 / Y 273 / W 496 / H 270 */
+#ch3 .a03-img-5 {
+  left: 73.3333vw !important;
+  top: 25.2778vh !important;
+  width: 25.8333vw !important;
+  height: 25vh !important;
+}
+/* ===== 03 from Figma: text blocks ===== */
+
+#ch3 .a03-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #FFFFFF !important;
+
+  /* 03 要跟 01/02 一样按 1920 栅格缩放：1920px 时 = 16px */
+  font-size: 0.833vw !important;
+  line-height: 1.18 !important;
+  font-weight: 100 !important;
+
+  letter-spacing: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+#ch3 .a03-gap {
+  display: block !important;
+  height: 0.55em !important;
+}
+
+/* a03-text-1
+   X 16 / Y 271 / W 400 / H 152 */
+#ch3 .a03-text-1 {
+  left: 0.8333vw !important;
+  top: 25.0926vh !important;
+  width: 20.8333vw !important;
+  height: 14.0741vh !important;
+}
+
+/* a03-text-2
+   X 544 / Y 454 / W 400 / H 55 */
+#ch3 .a03-text-2 {
+  left: 28.3333vw !important;
+  top: 42.0370vh !important;
+  width: 20.8333vw !important;
+  height: 5.0926vh !important;
+}
+
+/* a03-text-3
+   X 976 / Y 270 / W 400 / H 76 */
+#ch3 .a03-text-3 {
+  left: 50.8333vw !important;
+  top: 25vh !important;
+  width: 20.8333vw !important;
+  height: 7.0370vh !important;
+}
+
+/* a03-text-4
+   X 1408 / Y 753 / W 400 / H 57 */
+#ch3 .a03-text-4 {
+  left: 73.3333vw !important;
+  top: 69.7222vh !important;
+  width: 20.8333vw !important;
+  height: 5.2778vh !important;
+}
+/* ===== 04 from Figma: 6 image blocks ===== */
+
+#ch4 {
+  position: relative !important;
+}
+
+#ch4 .a04-img {
+  position: absolute !important;
+  display: block !important;
+  margin: 0 !important;
+  background: #b6b6b6 !important;
+  overflow: hidden !important;
+}
+
+/* a04-img-1
+   X 16 / Y 538 / W 312 / H 272 */
+#ch4 .a04-img-1 {
+  left: 0.83vw !important;
+  top: 49.81vh !important;
+  width: 16.25vw !important;
+  height: 25.19vh !important;
+}
+
+/* a04-img-2
+   X 360 / Y 538 / W 152 / H 132 */
+#ch4 .a04-img-2 {
+  left: 18.75vw !important;
+  top: 49.81vh !important;
+  width: 7.92vw !important;
+  height: 12.22vh !important;
+}
+
+/* a04-img-3
+   X 544 / Y 380 / W 400 / H 294 */
+#ch4 .a04-img-3 {
+  left: 28.33vw !important;
+  top: 35.19vh !important;
+  width: 20.83vw !important;
+  height: 27.22vh !important;
+}
+
+/* a04-img-4
+   X 976 / Y 272 / W 184 / H 332 */
+#ch4 .a04-img-4 {
+  left: 50.83vw !important;
+  top: 25.19vh !important;
+  width: 9.58vw !important;
+  height: 30.74vh !important;
+}
+
+/* a04-img-5
+   X 1192 / Y 454 / W 184 / H 150 */
+#ch4 .a04-img-5 {
+  left: 62.08vw !important;
+  top: 42.04vh !important;
+  width: 9.58vw !important;
+  height: 13.89vh !important;
+}
+
+/* a04-img-6
+   X 1408 / Y 380 / W 464 / H 398 */
+#ch4 .a04-img-6 {
+  left: 73.33vw !important;
+  top: 35.19vh !important;
+  width: 24.17vw !important;
+  height: 36.85vh !important;
+}
+/* ===== 04 from Figma: text blocks ===== */
+
+#ch4 .a04-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+
+  font-size: 0.833vw !important;
+  line-height: 1.18 !important;
+  font-weight: 100 !important;
+
+  letter-spacing: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* a04-text-1
+   X 16 / Y 432 / W 400 / H 76 */
+#ch4 .a04-text-1 {
+  left: 0.83vw !important;
+  top: 40vh !important;
+  width: 20.83vw !important;
+}
+
+/* a04-text-2
+   X 544 / Y 706 / W 400 / H 76 */
+#ch4 .a04-text-2 {
+  left: 28.33vw !important;
+  top: 65.37vh !important;
+  width: 20.83vw !important;
+}
+
+/* a04-text-3
+   X 976 / Y 636 / W 400 / H 38 */
+#ch4 .a04-text-3 {
+  left: 50.83vw !important;
+  top: 58.89vh !important;
+  width: 20.83vw !important;
+}
+
+/* a04-text-4
+   X 1408 / Y 272 / W 464 / H 76 */
+#ch4 .a04-text-4 {
+  left: 73.33vw !important;
+  top: 25.19vh !important;
+  width: 24.17vw !important;
+}
+/* ===== 05 from Figma: 3 image blocks ===== */
+
+#ch5 {
+  position: relative !important;
+}
+
+#ch5 .a05-img {
+  position: absolute !important;
+  display: block !important;
+  margin: 0 !important;
+  background: #b6b6b6 !important;
+  overflow: hidden !important;
+}
+
+/* a05-img-1
+   X 687 / Y 272 / W 257 / H 336 */
+#ch5 .a05-img-1 {
+  left: 35.78vw !important;
+  top: 25.19vh !important;
+  width: 13.39vw !important;
+  height: 31.11vh !important;
+}
+
+/* a05-img-2
+   X 976 / Y 640 / W 144 / H 170 */
+#ch5 .a05-img-2 {
+  left: 50.83vw !important;
+  top: 59.26vh !important;
+  width: 7.5vw !important;
+  height: 15.74vh !important;
+}
+
+/* a05-img-3
+   X 1152 / Y 270 / W 368 / H 338 */
+#ch5 .a05-img-3 {
+  left: 60vw !important;
+  top: 25vh !important;
+  width: 19.17vw !important;
+  height: 31.3vh !important;
+}
+/* ===== 05 from Figma: text blocks ===== */
+
+#ch5 .a05-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+
+  font-size: 0.833vw !important;
+  line-height: 1.18 !important;
+  font-weight: 100 !important;
+
+  letter-spacing: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* a05-text-1
+   X 112 / Y 270 / W 400 / H 170 */
+#ch5 .a05-text-1 {
+  left: 5.83vw !important;
+  top: 25vh !important;
+  width: 20.83vw !important;
+  height: 15.74vh !important;
+}
+
+/* a05-text-2
+   X 256 / Y 640 / W 400 / H 113 */
+#ch5 .a05-text-2 {
+  left: 13.33vw !important;
+  top: 59.26vh !important;
+  width: 20.83vw !important;
+  height: 10.46vh !important;
+}
+
+/* a05-text-3
+   X 1408 / Y 640 / W 400 / H 38 */
+#ch5 .a05-text-3 {
+  left: 73.33vw !important;
+  top: 59.26vh !important;
+  width: 20.83vw !important;
+  height: 3.52vh !important;
+}
+/* ===== 06 from Figma: 3 image blocks ===== */
+
+#ch6 {
+  position: relative !important;
+}
+
+#ch6 .a06-img {
+  position: absolute !important;
+  display: block !important;
+  margin: 0 !important;
+  background: #b6b6b6 !important;
+  overflow: hidden !important;
+}
+
+/* a06-img-1
+   X 256 / Y 480 / W 256 / H 136 */
+#ch6 .a06-img-1 {
+  left: 13.33vw !important;
+  top: 44.44vh !important;
+  width: 13.33vw !important;
+  height: 12.59vh !important;
+}
+
+/* a06-img-2
+   X 976 / Y 270 / W 400 / H 172 */
+#ch6 .a06-img-2 {
+  left: 50.83vw !important;
+  top: 25vh !important;
+  width: 20.83vw !important;
+  height: 15.93vh !important;
+}
+
+/* a06-img-3
+   X 976 / Y 640 / W 256 / H 170 */
+#ch6 .a06-img-3 {
+  left: 50.83vw !important;
+  top: 59.26vh !important;
+  width: 13.33vw !important;
+  height: 15.74vh !important;
+}
+/* ===== 06 from Figma: text blocks ===== */
+
+#ch6 .a06-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #ffffff !important;
+
+  font-size: 0.833vw !important;
+  line-height: 1.18 !important;
+  font-weight: 100 !important;
+
+  letter-spacing: 0 !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+/* a06-text-1
+   X 112 / Y 270 / W 400 / H 114 */
+/* a06-text-1
+   X 112 / Y 270 / W 400 / H 114 */
+#ch6 .a06-text-1 {
+  left: 5.83vw !important;
+  top: 25vh !important;
+  width: 20.83vw !important;
+  height: 10.56vh !important;
+}
+
+/* a06-text-2
+   X 544 / Y 480 / W 400 / H 114 */
+#ch6 .a06-text-2 {
+  left: 28.33vw !important;
+  top: 44.44vh !important;
+  width: 20.83vw !important;
+  height: 10.56vh !important;
+}
+
+/* a06-text-3
+   X 1408 / Y 540 / W 400 / H 76 */
+#ch6 .a06-text-3 {
+  left: 73.33vw !important;
+  top: 50vh !important;
+  width: 20.83vw !important;
+  height: 7.04vh !important;
+}
+/* ===== top home button only ===== */
+
+.archive-nav.home-nav {
+  height: 42px !important;
+  width: auto !important;
+  min-width: auto !important;
+  gap: 0 !important;
+  padding: 0 22px !important;
+  border: 1px solid rgba(255,255,255,0.65) !important;
+  border-radius: 999px !important;
+  background: #000000 !important;
+}
+
+.archive-nav.home-nav a {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 42px !important;
+  color: #ffffff !important;
+}
+
+.archive-nav.home-nav a em {
+  font-style: normal !important;
+}
+
+/* ===== CLEAN BOTTOM TIMELINE + TOP CONTROLS ===== */
+
+:root {
+  --control-color: rgba(255,255,255,0.86);
+  --control-border: rgba(255,255,255,0.72);
+  --control-font-size: 16px;
+
+  --timeline-edge: 64px;
+  --timeline-home-space: 150px;
+}
+
+/* 右上角按钮：Back 和 中/EN 拉开距离 */
+.archive-back {
+  position: fixed !important;
+  top: 18px !important;
+  right: 270px !important;
+  z-index: 230 !important;
+
+  height: 38px !important;
+  padding: 0 18px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  color: var(--control-color) !important;
+  font-size: var(--control-font-size) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+  white-space: nowrap !important;
+
+  border: 1px solid var(--control-border) !important;
+  border-radius: 999px !important;
+  background: #000000 !important;
+}
+
+.lang-toggle {
+  position: fixed !important;
+  top: 18px !important;
+  right: 64px !important;
+  z-index: 230 !important;
+
+  height: 38px !important;
+  padding: 0 18px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+
+  color: var(--control-color) !important;
+  font-size: var(--control-font-size) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+
+  border: 1px solid var(--control-border) !important;
+  border-radius: 999px !important;
+  background: #000000 !important;
+}
+
+.lang-toggle span {
+  color: var(--control-color) !important;
+}
+
+/* 底部时间线整体 */
+.timeline {
+  position: fixed !important;
+  left: calc(var(--timeline-edge) + var(--timeline-home-space)) !important;
+  right: var(--timeline-edge) !important;
+  bottom: 24px !important;
+  height: 96px !important;
+  z-index: 220 !important;
+  background: transparent !important;
+  pointer-events: none !important;
+}
+
+/* 时间线横线 */
+.timeline-line {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 28px !important;
+  height: 1px !important;
+  background: rgba(255,255,255,0.38) !important;
+}
+
+/* 红色滚动点 */
+.timeline-cursor {
+  position: absolute !important;
+  top: 24px !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #d62b22 !important;
+  transform: translateX(-50%) !important;
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+
+.timeline-cursor::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 50% !important;
+  bottom: 8px !important;
+  width: 1px !important;
+  height: 28px !important;
+  background: #d62b22 !important;
+  transform: translateX(-50%) !important;
+}
+
+/* 首页按钮：和年份文字视觉对齐 */
+.timeline-home {
+  position: fixed !important;
+  left: var(--timeline-edge) !important;
+  bottom: 35px !important;
+  z-index: 230 !important;
+
+  height: 38px !important;
+  min-width: 72px !important;
+  padding: 0 18px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  color: var(--control-color) !important;
+  text-decoration: none !important;
+  font-size: var(--control-font-size) !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+
+  border: 1px solid var(--control-border) !important;
+  border-radius: 999px !important;
+  background: #000000 !important;
+  pointer-events: auto !important;
+}
+
+/* 每个时间节点 */
+.t-mark {
+  position: absolute !important;
+  left: var(--at) !important;
+  top: 0 !important;
+  transform: translateX(-50%) !important;
+
+  width: max-content !important;
+  min-width: 150px !important;
+
+  display: block !important;
+  text-align: center !important;
+  text-decoration: none !important;
+
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+
+/* 小竖线 */
+.t-tick {
+  position: absolute !important;
+  left: 50% !important;
+  top: 10px !important;
+  width: 1px !important;
+  height: 34px !important;
+  background: rgba(255,255,255,0.55) !important;
+  transform: translateX(-50%) !important;
+}
+
+/* 不显示 01 / 02 / 03 数字 */
+.t-num {
+  display: none !important;
+}
+
+/* 时间文字 */
+.t-year {
+  display: block !important;
+  margin-top: 54px !important;
+
+  color: var(--control-color) !important;
+  font-size: var(--control-font-size) !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+
+/* hover */
+.timeline-home:hover,
+.t-mark:hover .t-year,
+.archive-back:hover,
+.lang-toggle:hover,
+.lang-toggle:hover span {
+  color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+/* ===== LANGUAGE SWITCH TEXT STYLE ===== */
+
+body[data-lang="en"] #horizontalStage .chapter p[class*="-text"] {
+  font-size: 12px !important;
+  font-weight: 100 !important;
+  line-height: 1.18 !important;
+  letter-spacing: 0 !important;
+}
+
+/* 中英文按钮：当前语言更亮 */
+body[data-lang="zh"] .lang-toggle .lt-zh,
+body[data-lang="en"] .lang-toggle .lt-en {
+  color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+body[data-lang="zh"] .lang-toggle .lt-en,
+body[data-lang="en"] .lang-toggle .lt-zh {
+  opacity: 0.35 !important;
+}
+/* ===== moving scan pointer reveal ===== */
+
+/* 这根线会跟着时间线红点移动，不是固定在一个地方 */
+.scan-pointer {
+  position: fixed !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0;
+  width: 1px !important;
+  background: rgba(214, 43, 34, 0.95) !important;
+  z-index: 180 !important;
+  pointer-events: none !important;
+  transform: translateX(-50%) !important;
+}
+
+/* 指针附近一点点红色光带 */
+.scan-pointer::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: -32px !important;
+  width: 64px !important;
+  background: linear-gradient(
+    to right,
+    rgba(214,43,34,0),
+    rgba(214,43,34,0.12),
+    rgba(214,43,34,0)
+  ) !important;
+}
+
+/* 被指针扫出来的图片和文字 */
+/* 被指针扫出来的图片和文字 */
+.scan-reveal {
+  opacity: 0 !important;
+  filter: blur(6px) !important;
+  transition:
+    opacity 0.16s ease,
+    filter 0.18s ease,
+    transform 0.18s ease !important;
+  will-change: opacity, filter, transform !important;
+}
+
+/* 图片：刚出现时先是马赛克/粗糙状态 */
+.scan-reveal.is-image {
+  overflow: hidden !important;
+}
+
+.scan-reveal.is-image.is-visible {
+  opacity: 1 !important;
+}
+
+/* 马赛克阶段：短暂粗糙 */
+.scan-reveal.is-image.is-mosaic {
+  opacity: 1 !important;
+  filter: blur(18px) contrast(2) saturate(0.65) !important;
+}
+
+/* 给图片加一层像素格子，模拟马赛克 */
+
+/* 真正的大颗粒像素马赛克层 */
+.scan-reveal.is-image {
+  overflow: hidden !important;
+}
+
+/* 关掉之前的网格马赛克 */
+.scan-reveal.is-image::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 用一张低分辨率临时图铺在原图上 */
+.scan-reveal.is-image::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 3 !important;
+  pointer-events: none !important;
+
+  background-image: var(--mosaic-bg) !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+
+  opacity: 0 !important;
+  filter: grayscale(1) contrast(1.18) brightness(1.02) !important;
+  transition:
+    opacity 0.16s ease,
+    filter 0.22s ease !important;
+}
+
+/* 图片刚出现：显示大颗粒马赛克 */
+.scan-reveal.is-image.is-mosaic {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.scan-reveal.is-image.is-mosaic::before {
+  opacity: 1 !important;
+}
+
+/* 图片变清晰：马赛克层消失，露出原图 */
+.scan-reveal.is-image.is-clear {
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.scan-reveal.is-image.is-clear::before {
+  opacity: 0 !important;
+}
+
+/* 文字：比图片晚一点出来 */
+.scan-reveal.is-text {
+  opacity: 0 !important;
+  filter: blur(4px) !important;
+  transform: translateY(4px) !important;
+}
+
+.scan-reveal.is-text.is-visible {
+  opacity: 1 !important;
+  filter: none !important;
+  transform: translateY(0) !important;
+}
+/* ===== ARCHIVE IMAGE INSERTS 01–06 ===== */
+
+#horizontalStage .chapter figure {
+  background-color: #b6b6b6 !important;
+  background-position: center !important;
+  background-size: cover !important;
+  background-repeat: no-repeat !important;
+}
+
+/* ---------- 01 ---------- */
+
+#ch1 .a01-img-1 {
+  background-image: url("images/a01-img-1.jpg") !important;
+}
+
+#ch1 .a01-img-2 {
+  background-image: url("images/a01-img-2.jpg") !important;
+}
+
+#ch1 .a01-img-3 {
+  background-image: url("images/a01-img-3.jpg") !important;
+}
+
+/* ---------- 02 ---------- */
+
+#ch2 .a02-img-1 {
+  background-image: url("images/a02-img-1.jpg") !important;
+}
+
+#ch2 .a02-img-2 {
+  background-image: url("images/a02-img-2.jpg") !important;
+}
+
+#ch2 .a02-img-3 {
+  background-image: url("images/a02-img-3.jpg") !important;
+}
+
+#ch2 .a02-img-4 {
+  background-image: url("images/a02-img-4.jpg") !important;
+}
+
+/* ---------- 03 ---------- */
+
+#ch3 .a03-img-1 {
+  background-image: url("images/a03-img-1.jpg") !important;
+}
+
+#ch3 .a03-img-2 {
+  background-image: url("images/a03-img-2.jpg") !important;
+}
+
+#ch3 .a03-img-3 {
+  background-image: url("images/a03-img-3.jpg") !important;
+}
+
+#ch3 .a03-img-4 {
+  background-image: url("images/a03-img-4.jpg") !important;
+}
+
+#ch3 .a03-img-5 {
+  background-image: url("images/a03-img-5.jpg") !important;
+}
+
+/* ---------- 04 ---------- */
+
+#ch4 .a04-img-1 {
+  background-image: url("images/a04-img-1.jpg") !important;
+}
+
+#ch4 .a04-img-2 {
+  background-image: url("images/a04-img-2.jpg") !important;
+}
+
+#ch4 .a04-img-3 {
+  background-image: url("images/a04-img-3.jpg") !important;
+}
+
+#ch4 .a04-img-4 {
+  background-image: url("images/a04-img-4.jpg") !important;
+}
+
+#ch4 .a04-img-5 {
+  background-image: url("images/a04-img-5.jpg") !important;
+}
+
+#ch4 .a04-img-6 {
+  background-image: url("images/a04-img-6.jpg") !important;
+}
+
+/* ---------- 05 ---------- */
+
+#ch5 .a05-img-1 {
+  background-image: url("images/a05-img-1.jpg") !important;
+}
+
+#ch5 .a05-img-2 {
+  background-image: url("images/a05-img-2.jpg") !important;
+}
+
+#ch5 .a05-img-3 {
+  background-image: url("images/a05-img-3.jpg") !important;
+}
+
+/* ---------- 06 ---------- */
+
+#ch6 .a06-img-1 {
+  background-image: url("images/a06-img-1.jpg") !important;
+}
+
+#ch6 .a06-img-2 {
+  background-image: url("images/a06-img-2.jpg") !important;
+}
+
+#ch6 .a06-img-3 {
+  background-image: url("images/a06-img-3.jpg") !important;
+}
+
+/* ===== 00 archive cover text from Figma ===== */
+
+#cover {
+  position: relative !important;
+}
+
+#cover .a00-text {
+  position: absolute !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  color: #ffffff !important;
+  font-size: 1.0417vw !important; /* 1920px 时 = 20px */
+  line-height: 1.2 !important;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+
+  white-space: normal !important;
+  pointer-events: none !important;
+  z-index: 90 !important;
+
+  opacity: 0;
+}
+
+/* a00-text-1 — X 400 / Y 270 / W 261 / H 24 */
+#cover .a00-text-1 {
+  left: 20.833vw !important;
+  top: 25vh !important;
+  width: 13.594vw !important;
+  height: 2.222vh !important;
+}
+
+/* a00-text-2 — X 800 / Y 448 / W 160 / H 72 */
+#cover .a00-text-2 {
+  left: 41.667vw !important;
+  top: 41.481vh !important;
+  width: 8.333vw !important;
+  height: 6.667vh !important;
+}
+
+/* a00-text-3 — X 1120 / Y 629 / W 260 / H 72 */
+#cover .a00-text-3 {
+  left: 58.333vw !important;
+  top: 58.241vh !important;
+  width: 13.542vw !important;
+  height: 6.667vh !important;
+}
+
+/* a00-text-4 — X 1552 / Y 786 / W 153 / H 24 */
+#cover .a00-text-4 {
+  left: 80.833vw !important;
+  top: 72.778vh !important;
+  width: 7.969vw !important;
+  height: 2.222vh !important;
+}
+/* ===== CLEAN IMAGE VIEWER: transparent + smooth ===== */
+
+#horizontalStage figure {
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+
+  background: rgba(0, 0, 0, 0.56) !important;
+  backdrop-filter: blur(10px) !important;
+
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+
+  transition:
+    opacity 0.36s ease,
+    visibility 0.36s ease !important;
+}
+
+.overlay.is-open {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+.overlay-bg {
+  position: absolute !important;
+  inset: 0 !important;
+  background: transparent !important;
+}
+
+/* 这个容器只负责定位，不再有白底 */
+.overlay-image-wrap {
+  position: fixed !important;
+  inset: 0 !important;
+
+  width: 100vw !important;
+  height: 100vh !important;
+
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+
+  overflow: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* 没有 detail 图片时才显示灰底 */
+.overlay-placeholder {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+
+  width: 52vw !important;
+  height: 58vh !important;
+
+  transform: translate(-50%, -50%) scale(0.98) !important;
+  background: #9a9a9a !important;
+
+  opacity: 0.9 !important;
+  visibility: visible !important;
+  display: block !important;
+
+  transition:
+    opacity 0.28s ease,
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 0.28s ease !important;
+}
+
+.overlay-placeholder.is-hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  transform: translate(-50%, -50%) scale(0.96) !important;
+}
+
+/* detail 图片：先透明、模糊、微放大，再丝滑显现 */
+.overlay-image {
+  display: block !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+
+  max-width: 72vw !important;
+  max-height: 78vh !important;
+
+  object-fit: contain !important;
+
+  opacity: 0 !important;
+  filter: blur(18px) !important;
+  transform: translate(-50%, -50%) scale(1.025) !important;
+
+  transition:
+    opacity 0.52s ease,
+    filter 0.62s ease,
+    transform 0.62s cubic-bezier(0.22, 1, 0.36, 1) !important;
+
+  will-change: opacity, filter, transform !important;
+}
+
+.overlay-image.is-loaded {
+  opacity: 1 !important;
+  filter: blur(0) !important;
+  transform: translate(-50%, -50%) scale(1) !important;
+}
+
+/* 左侧批注：白字、正文同字体、16、thin；比图片慢一步丝滑出现 */
+.overlay-caption {
+  position: fixed !important;
+  left: 6vw !important;
+  top: 12vh !important;
+  z-index: 100001 !important;
+
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 16px !important;
+  font-weight: 100 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: pre-line !important;
+
+  background: transparent !important;
+  mix-blend-mode: normal !important;
+
+  opacity: 0 !important;
+  filter: blur(5px) !important;
+  transform: translateY(6px) !important;
+  transition:
+    opacity 0.45s ease,
+    filter 0.48s ease,
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+.overlay-caption.is-visible {
+  opacity: 1 !important;
+  filter: blur(0) !important;
+  transform: translateY(0) !important;
+}
+
+/* 关闭按钮 */
+.overlay-close {
+  position: fixed !important;
+  top: 22px !important;
+  right: 28px !important;
+  z-index: 100002 !important;
+
+  min-width: 84px !important;
+  height: 38px !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+
+  border: 1px solid rgba(255,255,255,0.9) !important;
+  background: rgba(255,255,255,0.95) !important;
+  color: #000000 !important;
+
+  font-family: inherit !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+
+  cursor: pointer !important;
+}
+
+.overlay-close span {
+  display: none !important;
+}
+
+/* ===== CLEAN SOFT 3D ARCHIVE BUTTONS ===== */
+
+.archive-back,
+.lang-toggle,
+.timeline-home,
+.t-year {
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+
+  color: #EBA14C!important;
+
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.05em !important;
+  text-decoration: none !important;
+
+  -webkit-text-stroke: 0.7px #101010 !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+
+    0 -1px 0 rgba(255, 255, 255, 0.9),
+    0 0 6px rgba(255, 242, 0, 0.75),
+    0 0 14px rgba(120, 255, 0, 0.55) !important;
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 0.25s ease,
+    color 0.25s ease !important;
+}
+
+/* 中 / EN 里面的 span 也要跟着变 */
+.lang-toggle span {
+  color: #EBA14C !important;
+  -webkit-text-stroke: 0.7px #101010 !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+
+    0 -1px 0 rgba(255, 255, 255, 0.9),
+    0 0 6px rgba(255, 242, 0, 0.75),
+    0 0 14px rgba(120, 255, 0, 0.55) !important;
+}
+
+/* hover：轻微凸起来，不要糊成黑团 */
+.archive-back:hover,
+.lang-toggle:hover,
+.timeline-home:hover,
+.t-mark:hover .t-year {
+  color: #EBA14C !important;
+  border: none !important;
+  transform: translateY(-3px) scale(1.04) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 242, 0, 0.95),
+    0 0 18px rgba(120, 255, 0, 0.75) !important;
+}
+
+/* 当前语言仍然要有明暗区别 */
+body[data-lang="zh"] .lang-toggle .lt-zh,
+body[data-lang="en"] .lang-toggle .lt-en {
+  opacity: 1 !important;
+}
+
+body[data-lang="zh"] .lang-toggle .lt-en,
+body[data-lang="en"] .lang-toggle .lt-zh {
+  opacity: 0.42 !important;
+}
+/* ===== FINAL: archive UI icons before text ===== */
+
+/* archive 里的小图标按钮：图标在左，文字在右 */
+.archive-icon-button {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+}
+
+/* archive 交互按钮图标 */
+.archive-ui-icon {
+  width: 24px !important;
+  height: 24px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  transform: translateY(-1px) !important;
+
+  filter:
+    drop-shadow(1px 1px 0 #101010)
+    drop-shadow(0 0 5px rgba(255, 242, 0, 0.45)) !important;
+
+  pointer-events: none !important;
+}
+
+/* 让 Back / 中EN / 首页 的文字和图标保持同一行 */
+.archive-back span,
+.timeline-home span,
+.lang-toggle span {
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+
+/* hover 的时候图标也跟着动 */
+.archive-icon-button:hover .archive-ui-icon {
+  transform: translateY(-3px) scale(1.05) !important;
+
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.85))
+    drop-shadow(0 0 14px rgba(120, 255, 0, 0.55)) !important;
+}
+
+/* ===== FINAL: disable archive self loading page ===== */
+.archive-loading,
+.archive-loading-rainbow {
+  display: none !important;
+}
+
+/* ===== FINAL: archive image viewer bilingual captions ===== */
+.overlay-caption {
+  left: 6vw !important;
+  top: 18vh !important;
+  width: 360px !important;
+  max-width: 30vw !important;
+
+  color: #ffffff !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 100 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: normal !important;
+}
+
+.overlay-caption-zh,
+.overlay-caption-en {
+  color: #ffffff !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 100 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+}
+
+.overlay-caption-en {
+  margin-top: 18px !important;
+}
+
+
+
+/* ===== FINAL FIX: archive captions same thin style + more readable layout ===== */
+.overlay-caption {
+  left: 6vw !important;
+  top: 13vh !important;
+  width: 410px !important;
+  max-width: 32vw !important;
+  color: #ffffff !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 100 !important;
+  line-height: 1.34 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  white-space: normal !important;
+  text-shadow: none !important;
+  -webkit-font-smoothing: antialiased !important;
+  font-synthesis: none !important;
+}
+
+.overlay-caption,
+.overlay-caption * {
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 100 !important;
+  line-height: 1.34 !important;
+  letter-spacing: 0 !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+  font-synthesis: none !important;
+}
+
+.overlay-caption-zh,
+.overlay-caption-en {
+  display: block !important;
+  max-width: 100% !important;
+}
+
+.overlay-caption-en {
+  margin-top: 22px !important;
+}
+
+
+
+/* ===== FINAL TRY: overlay caption position from Figma ===== */
+.overlay-caption {
+  left: 32px !important;
+  top: 96px !important;
+  width: 320px !important;
+  height: 708px !important;
+  max-width: 320px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+
+
+/* ===== FINAL FIX: archive caption position + longer text readability ===== */
+.overlay-caption {
+  left: 32px !important;
+  top: 96px !important;
+  width: 320px !important;
+  height: 708px !important;
+  max-width: 320px !important;
+  overflow: visible !important;
+  box-sizing: border-box !important;
+}
+
+.overlay-caption,
+.overlay-caption * {
+  color: #ffffff !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 100 !important;
+  line-height: 1.32 !important;
+  letter-spacing: 0 !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+  font-synthesis: none !important;
+}
+
+.overlay-caption-en {
+  margin-top: 24px !important;
+}
+</style>
+</head>
+<body data-lang="zh">
+
+<!-- Clean top navigation -->
+  <header class="archive-topbar">
+    <div class="archive-logo" aria-label="SMART logo">
+      <model-viewer
+        class="archive-logo-model"
+        src="./models/smart.glb.glb"
+        alt="SMART 3D logo"
+        interaction-prompt="none"
+        disable-zoom
+        environment-image="neutral"
+        shadow-intensity="0"
+        exposure="0.9"
+        camera-orbit="0deg 75deg 155%"
+        field-of-view="26deg"
+      ></model-viewer>
+    </div>
+
+    <a class="archive-back archive-icon-button" href="index.html?screen=model">
+  <img class="archive-ui-icon" src="icons/icon-back.png" alt="">
+  <span>返回 / Back</span>
+</a>
+  </header>
+
+<!-- ============================================================
+       Language toggle · top-right
+  ============================================================= -->
+  <button class="lang-toggle archive-icon-button" id="langToggle" type="button" aria-label="切换语言 / toggle language">
+  <img class="archive-ui-icon" src="icons/icon-lang.png" alt="">
+  <span class="lt-zh">中</span>
+  <span class="lt-sep">/</span>
+  <span class="lt-en">EN</span>
+</button>
+<!-- ============================================================
+       Cover / hero
+  ============================================================= -->
+  <div id="horizontalStage" class="horizontal-stage">
+  <section class="cover" id="cover">
+  <p class="float pos-cover-credit"
+     data-zh="毕业设计&nbsp;·&nbsp;2026 / 一份视觉论文"
+     data-en="GRADUATION&nbsp;DESIGN&nbsp;·&nbsp;2026 / A&nbsp;visual&nbsp;thesis">毕业设计&nbsp;·&nbsp;2026 / 一份视觉论文</p>
+
+  <p class="a00-text a00-text-1">也许，中国也有自己的朋克。</p>
+  <p class="a00-text a00-text-2">不是在舞台上，<br><br>而是在流水线旁。</p>
+  <p class="a00-text a00-text-3">他们用头发、自拍和火星文，<br><br>把自己从编号里认领出来。</p>
+  <p class="a00-text a00-text-4">About SMART：</p>
+</section>
+
+  <!-- ============================================================
+   <!-- ============================================================
+       Chapter 1 · 1985–1999 — 进城的一代
+  ============================================================= -->
+  <section class="chapter ch-1 archive01" id="ch1">
+
+ <figure class="a01-img a01-img-1" data-detail="detail/a01-img-1-detail.jpg"></figure>
+<figure class="a01-img a01-img-2"></figure>
+<figure class="a01-img a01-img-3" data-detail="detail/a01-img-3-detail.jpg"></figure>
+
+<p class="a01-text a01-text-1">
+  杀马特一代大多出生在1985至1995年间。那时，父母一批批离开村庄，去广东、浙江、福建的工厂打工。孩子被留在乡下，跟着祖辈生活，在山路、田埂、村小和老屋之间长大。
+</p>
+
+<p class="a01-text a01-text-2">
+  他们的童年不是田园牧歌，而是等待。等父母过年回来，等一通很少打来的电话，等汇款，等一个能离开村子的机会。很多时候，陪伴他们的是村口小卖部、黑白电视、旧课本和祖辈沉默的照看。
+</p>
+
+<p class="a01-text a01-text-3">
+  留守的经验让“被看见”变得很稀缺。没有人认真问他们想成为什么样的人，也很少有人把他们的感受当成问题。后来夸张的头发和自拍，也许正是从这种农村童年的沉默里长出来的。
+</p>
+
+</section>
+
+  <!-- ============================================================
+       Chapter 2 · 2003–2006 — 头发是我的王冠
+  ============================================================= -->
+   <!-- ============================================================
+       Chapter 2 · 2000–2005
+  ============================================================= -->
+  <section class="chapter ch-2 archive02" id="ch2">
+
+  <figure class="a02-img a02-img-1"></figure>
+  <figure class="a02-img a02-img-2"></figure>
+  <figure class="a02-img a02-img-3" data-detail="detail/a02-img-3-detail.jpg"></figure>
+  <figure class="a02-img a02-img-4"></figure>
+
+  <p class="a02-text a02-text-1">
+  2001年后，珠三角、长三角的工厂像黑夜里的巨大机器，把十六七岁的他们吸进去。很多人初中没毕业就离乡，背着包进厂，第一眼看见的不是城市，而是厂门、宿舍和工牌。
+</p>
+
+<p class="a02-text a02-text-2">
+  他们站在电子厂、服装厂、玩具厂的流水线旁，一天十二个小时甚至更久。拧螺丝、剪线头、装零件、赶货，手指被磨破，眼睛盯到发酸。机器声盖过说话声，身体被训练成重复动作。
+</p>
+
+<p class="a02-text a02-text-3">
+  加班到深夜后，他们回到八人间、十二人间的宿舍。空气里是汗味、洗衣粉和疲惫。工资不高，请假很难，有时连结账都要等。廉价网吧成了唯一能喘气的地方。
+</p>
+
+<p class="a02-text a02-text-4">
+  工厂只需要他们的手，不需要他们的名字。也正是在这种苦里，他们开始追问：除了上班、加班、进厂，我还能不能拥有一点自己的样子？
+</p>
+
+</section>
+
+  <!-- ============================================================
+   <!-- ============================================================
+       Chapter 3 · 2006–2009
+  ============================================================= -->
+  <section class="chapter ch-3 archive03" id="ch3">
+
+    <figure class="a03-img a03-img-1"></figure>
+    <figure class="a03-img a03-img-2"></figure>
+    <figure class="a03-img a03-img-3"></figure>
+    <figure class="a03-img a03-img-4"></figure>
+    <figure class="a03-img a03-img-5"></figure>
+
+    <p class="a03-text a03-text-1">
+      不知从何时起，有人在QQ空间里晒出了自己的新造型——头发染成了鲜红色，高高竖起。然后越来越多的人开始模仿。<span class="a03-gap"></span>
+      从网络中看到的日本视觉系乐队和欧美哥特文化给了他们灵感，但他们用自己的方式进行了本土化改造：不需要昂贵的皮衣和乐器，只需要一罐十几块钱的发胶、一盒染发膏，和一台能上网的电脑。
+    </p>
+
+    <p class="a03-text a03-text-2">
+      他们给这种风格取了一个英文谐音的名字：杀马特（Smart）。意思是“时尚的、聪明的”。这是他们对自己最美好的期许。
+    </p>
+
+    <p class="a03-text a03-text-3">
+      发型越来越夸张——彩虹色、爆炸头、长刘海遮住半张脸。衣服越来越鲜艳——荧光粉紧身T恤、亮片腰带、银色项链。他们在照片里摆出各种“酷”的姿势，背景是工厂宿舍、溜冰场、或者路边的小花坛。
+    </p>
+
+    <p class="a03-text a03-text-4">
+      他们还发明了一套专属的文字系统：火星文。把“我爱你”写成“莪噯伱”，把“悲伤”写成“悲傷菿岥晫”。在外人看来不可读的文字，在他们内部却是心照不宣的暗号。
+    </p>
+
+  </section>
+    <!-- ============================================================
+       Chapter 4 · 2010–2012
+  ============================================================= -->
+  <section class="chapter ch-4 archive04" id="ch4">
+
+    <figure class="a04-img a04-img-1"></figure>
+    <figure class="a04-img a04-img-2"></figure>
+    <figure class="a04-img a04-img-3"></figure>
+    <figure class="a04-img a04-img-4"></figure>
+    <figure class="a04-img a04-img-5"></figure>
+    <figure class="a04-img a04-img-6"></figure>
+
+     <p class="a04-text a04-text-1">
+    2010年前后，杀马特达到了它的鼎盛时期。QQ群里的“家族”遍地开花——葬爱家族、残血家族、泪痕家族……被称为“杀马特教父”的罗福兴，一个人管理的核心成员就达2500人，手下有效成员超过二十万。
+  </p>
+
+  <p class="a04-text a04-text-2">
+    他们不再只是网络上的虚拟存在。线下聚会开始出现——在某个城市的溜冰场、KTV或者公园，一群顶着彩虹头的年轻人聚在一起，拍照、聊天、互相鼓励。在现实中找不到归属的他们，在杀马特家族里找到了“家人”。
+  </p>
+
+  <p class="a04-text a04-text-3">
+    这种大规模、有组织的亚文化景象，在当时几乎是绝无仅有的。他们自己也没有意识到，他们正在创造历史。
+  </p>
+
+  <p class="a04-text a04-text-4">
+    主流社会开始注意到了他们。起初是好奇，然后是困惑，最后变成了嘲笑。“非主流”“脑残”“杀马特”这些标签开始出现在各大论坛和媒体上。但此时的杀马特还在狂欢，他们以为被看见就是胜利，哪怕是以被骂的方式。
+  </p>
+</section>
+
+  <!-- ============================================================
+       Chapter 5 · 2012–2013
+  ============================================================= -->
+<section class="chapter ch-5 archive05" id="ch5">
+
+  <figure class="a05-img a05-img-1"></figure>
+  <figure class="a05-img a05-img-2"></figure>
+  <figure class="a05-img a05-img-3"></figure>
+
+  <p class="a05-text a05-text-1">
+    2012年起，“反杀马特”浪潮在各大平台兴起。贴吧里出现了“反杀马特吧”，成员们组织“爆吧”行动，攻击杀马特家族的阵地。<br><br>
+    微博上，大V们带头嘲讽，把杀马特的照片做成表情包，配上一句“这就是城乡结合部的审美”。<br><br>
+    主流媒体开始报道，标题往往是《“杀马特”现象调查：是时尚还是脑残？》
+  </p>
+
+  <p class="a05-text a05-text-2">
+    更可怕的事情发生在线下。有组织者发起“街头剪发”行动，特地在公共场所截住杀马特青年，强行剪掉他们的头发。<br><br>
+    视频被传到网上，获得了数十万点赞。评论区一片叫好：“活该”“早该治治了”。
+  </p>
+
+  <p class="a05-text a05-text-3">
+    他们被剥夺了最后的表达方式。那根竖起来的头发，是他们唯一能自己掌控的东西。
+  </p>
+
+</section>
+  <!-- ============================================================
+       Chapter 6 · 2013–
+  ============================================================= -->
+ <section class="chapter ch-6 archive06" id="ch6">
+
+  <figure class="a06-img a06-img-1"></figure>
+<figure class="a06-img a06-img-2"></figure>
+<figure class="a06-img a06-img-3"></figure>
+<p class="a06-text a06-text-1">
+  2013年，“净网行动”在全国范围内展开。杀马特作为“低俗、庸俗、媚俗”的典型，被列入清理名单。<br><br>
+  大量的QQ群被强制解散，贴吧被关闭，QQ空间里的照片被批量删除。许多杀马特的账号永远停留在“最后登录：2013年”。
+</p>
+
+<p class="a06-text a06-text-2">
+  他们中的大多数人剪掉了头发，删光了空间，退出了所有家族群。没有人知道他们去了哪里。<br><br>
+  大部分人回到了流水线上，继续做着日复一日的工作。有些人结婚了，有些人生了孩子，有些人还在不同的工厂之间辗转。
+</p>
+
+<p class="a06-text a06-text-3">
+  十几年来，这段历史没有被写入任何教科书，没有被任何博物馆收藏。在互联网上，你只能搜到零星的截图、模糊的记忆、以及当年那些恶意的梗。没有人认真地问过：他们是谁？他们为什么那样？他们后来怎么样了？
+</p>
+
+</section>
+
+  </div>
+
+  <!-- ============================================================
+       Bottom timeline
+  ============================================================= -->
+  <div class="timeline" id="timeline" aria-hidden="false">
+  <div class="timeline-line"></div>
+  <div class="timeline-cursor" id="timelineCursor"></div>
+
+  <a class="timeline-home archive-icon-button" href="#cover">
+  <img class="archive-ui-icon" src="icons/icon-home.png" alt="">
+  <span>首页</span>
+</a>
+
+  <a class="t-mark" data-jump="ch1" style="--at: 4%;">
+    <span class="t-tick"></span>
+    <span class="t-year">1985–1999</span>
+  </a>
+
+  <a class="t-mark" data-jump="ch2" style="--at: 22%;">
+    <span class="t-tick"></span>
+    <span class="t-year">2000–2005</span>
+  </a>
+
+  <a class="t-mark" data-jump="ch3" style="--at: 40%;">
+    <span class="t-tick"></span>
+    <span class="t-year">2006–2009</span>
+  </a>
+
+  <a class="t-mark" data-jump="ch4" style="--at: 58%;">
+    <span class="t-tick"></span>
+    <span class="t-year">2010–2012</span>
+  </a>
+
+  <a class="t-mark" data-jump="ch5" style="--at: 76%;">
+    <span class="t-tick"></span>
+    <span class="t-year">2012–2013</span>
+  </a>
+
+  <a class="t-mark" data-jump="ch6" style="--at: 96%;">
+    <span class="t-tick"></span>
+    <span class="t-year">2013–now</span>
+  </a>
+</div>
+
+<div class="scan-pointer" id="scanPointer" aria-hidden="true"></div>
+
+    <!-- ============================================================
+       Image overlay
+  ============================================================= -->
+  <div class="overlay" id="overlay" aria-hidden="true">
+    <div class="overlay-bg"></div>
+
+    <button class="overlay-close" id="overlayClose" aria-label="close" type="button">
+      X ESC
+    </button>
+
+    <div class="overlay-image-wrap" id="overlayImageWrap">
+      <div class="overlay-placeholder" id="overlayPlaceholder"></div>
+      <img class="overlay-image" id="overlayImage" alt="" />
+      <div class="overlay-caption" id="overlayCaption">№ 000</div>
+    </div>
+  </div>
+
+<script>
+/* ===== clean smooth horizontal scroll + scan reveal with mosaic ===== */
+(function () {
+  function init() {
+    const stage = document.getElementById("horizontalStage");
+    if (!stage) return;
+
+    stage.style.overflowX = "auto";
+    stage.style.overflowY = "hidden";
+    stage.style.scrollSnapType = "none";
+    stage.style.scrollBehavior = "auto";
+
+    Array.from(stage.children).forEach(function (child) {
+      child.style.scrollSnapAlign = "none";
+    });
+
+    const ease = 0.01;
+    const speed = 0.4;
+
+    let targetScroll = stage.scrollLeft;
+    let currentScroll = stage.scrollLeft;
+    let rafId = null;
+    let scanItems = [];
+
+    const cursorStops = [0, 4, 22, 40, 58, 76, 96];
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function getMaxScroll() {
+      return stage.scrollWidth - stage.clientWidth;
+    }
+    function makeMosaicForElement(el, pixelsWide) {
+  const bg = window.getComputedStyle(el).backgroundImage;
+
+  if (!bg || bg === "none") return;
+
+  const match = bg.match(/url\(["']?(.*?)["']?\)/);
+  if (!match || !match[1]) return;
+
+  const url = match[1];
+  const img = new Image();
+
+  img.onload = function () {
+    const rect = el.getBoundingClientRect();
+
+    const canvas = document.createElement("canvas");
+    const w = pixelsWide;
+    const h = Math.max(1, Math.round(w * (rect.height / rect.width)));
+
+    canvas.width = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext("2d");
+
+    const scale = Math.max(
+      w / img.naturalWidth,
+      h / img.naturalHeight
+    );
+
+    const sw = w / scale;
+    const sh = h / scale;
+    const sx = (img.naturalWidth - sw) / 2;
+    const sy = (img.naturalHeight - sh) / 2;
+
+    /*
+      先把原图缩成很小的图，
+      再让 CSS 放大成锯齿块。
+    */
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, w, h);
+
+    const dataURL = canvas.toDataURL("image/jpeg", 0.85);
+    el.style.setProperty("--mosaic-bg", `url("${dataURL}")`);
+  };
+
+  img.src = url;
+}
+
+    function setupScanReveal() {
+      scanItems = Array.from(
+        document.querySelectorAll(
+  "#horizontalStage .chapter figure, #horizontalStage .chapter p, #cover .a00-text"
+)
+      );
+
+      scanItems.forEach(function (el) {
+        el.classList.add("scan-reveal");
+        el.dataset.revealed = "0";
+
+        if (el.tagName.toLowerCase() === "figure") {
+  el.classList.add("is-image");
+
+  /*
+    这里控制马赛克颗粒大小：
+    数字越小，颗粒越大。
+    26 是比较明显的大颗粒。
+  */
+  makeMosaicForElement(el, 26);
+} else {
+  el.classList.add("is-text");
+}
+      });
+    }
+
+    function getTimelinePercent() {
+      const pageFloat = stage.clientWidth > 0
+        ? stage.scrollLeft / stage.clientWidth
+        : 0;
+
+      const maxIndex = cursorStops.length - 1;
+      const leftIndex = clamp(Math.floor(pageFloat), 0, maxIndex);
+      const rightIndex = clamp(leftIndex + 1, 0, maxIndex);
+      const progress = clamp(pageFloat - leftIndex, 0, 1);
+
+      const start = cursorStops[leftIndex];
+      const end = cursorStops[rightIndex];
+
+      return start + (end - start) * progress;
+    }
+
+    function updateScanPointerReveal() {
+      const pointer = document.getElementById("scanPointer");
+      const cursor = document.getElementById("timelineCursor");
+
+      if (!pointer || !cursor) return;
+
+      const cursorRect = cursor.getBoundingClientRect();
+      const pointerX = cursorRect.left + cursorRect.width / 2;
+
+      pointer.style.left = `${pointerX}px`;
+
+      scanItems.forEach(function (el) {
+        const rect = el.getBoundingClientRect();
+
+        /*
+          指针碰到元素左边后只触发一次。
+          触发后不会因为倒回去而消失。
+        */
+        if (pointerX >= rect.left && el.dataset.revealed !== "1") {
+          el.dataset.revealed = "1";
+
+          if (el.classList.contains("is-image")) {
+            /*
+              图片：
+              先马赛克/模糊出现，
+              很快变清晰。
+            */
+            el.classList.add("is-visible");
+            el.classList.add("is-mosaic");
+
+            window.setTimeout(function () {
+              el.classList.add("is-clear");
+            }, 120);
+
+            window.setTimeout(function () {
+              el.classList.remove("is-mosaic");
+            }, 320);
+          } else {
+            /*
+              文字：
+              比图片稍微晚一点出现。
+            */
+            window.setTimeout(function () {
+              el.classList.add("is-visible");
+            }, 180);
+          }
+        }
+      });
+    }
+
+    function updateTimeline() {
+      const cursor = document.getElementById("timelineCursor");
+      const percent = getTimelinePercent();
+
+      if (cursor) {
+        cursor.style.left = `${percent}%`;
+      }
+
+      updateScanPointerReveal();
+    }
+
+    function animateScroll() {
+      const distance = targetScroll - currentScroll;
+      currentScroll += distance * ease;
+
+      if (Math.abs(distance) < 0.35) {
+        currentScroll = targetScroll;
+        stage.scrollLeft = currentScroll;
+        updateTimeline();
+        rafId = null;
+        return;
+      }
+
+      stage.scrollLeft = currentScroll;
+      updateTimeline();
+
+      rafId = requestAnimationFrame(animateScroll);
+    }
+
+    function startAnimation() {
+      if (rafId === null) {
+        rafId = requestAnimationFrame(animateScroll);
+      }
+    }
+
+    function handleWheel(event) {
+      const overlay = document.getElementById("overlay");
+      if (overlay && overlay.classList.contains("is-open")) return;
+
+      if (event.ctrlKey) return;
+
+      const max = getMaxScroll();
+      if (max <= 0) return;
+
+      let delta =
+        Math.abs(event.deltaX) > Math.abs(event.deltaY)
+          ? event.deltaX
+          : event.deltaY;
+
+      if (event.deltaMode === 1) delta *= 16;
+      if (event.deltaMode === 2) delta *= window.innerHeight;
+
+      if (Math.abs(delta) < 1) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+
+      currentScroll = stage.scrollLeft;
+      targetScroll = clamp(targetScroll + delta * speed, 0, max);
+
+      startAnimation();
+    }
+
+    function smoothToId(id) {
+      const target = document.getElementById(id);
+      if (!target) return;
+
+      currentScroll = stage.scrollLeft;
+      targetScroll = clamp(target.offsetLeft, 0, getMaxScroll());
+
+      startAnimation();
+    }
+
+    setupScanReveal();
+    updateTimeline();
+
+    window.addEventListener("wheel", handleWheel, {
+      passive: false,
+      capture: true
+    });
+
+    document.querySelectorAll('a[href^="#"], .t-mark').forEach(function (el) {
+      el.addEventListener("click", function (event) {
+        const id = el.classList.contains("t-mark")
+          ? el.dataset.jump
+          : el.getAttribute("href").slice(1);
+
+        if (!id) return;
+
+        const target = document.getElementById(id);
+        if (!target) return;
+
+        event.preventDefault();
+        smoothToId(id);
+      });
+    });
+
+    stage.addEventListener("scroll", function () {
+      updateTimeline();
+    }, { passive: true });
+
+    window.addEventListener("resize", function () {
+      targetScroll = clamp(stage.scrollLeft, 0, getMaxScroll());
+      currentScroll = targetScroll;
+      updateTimeline();
+    });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+<script>
+/* ===== CHINESE / ENGLISH TEXT SWITCH ===== */
+(function () {
+  const body = document.body;
+  const langToggle = document.getElementById("langToggle");
+
+  if (!body || !langToggle) return;
+
+  const translations = {
+    ".a01-text-1": {
+      en: `Most members of the Shamate generation were born between 1985 and 1995. At that time, their parents left village after village to work in factories in Guangdong, Zhejiang, and Fujian. The children stayed behind in the countryside, growing up with grandparents among mountain roads, fields, village schools, and old houses.`
+    },
+    ".a01-text-2": {
+      en: `Their childhood was not pastoral nostalgia, but waiting. Waiting for parents to return during Spring Festival, waiting for a rare phone call, waiting for remittances, waiting for a chance to leave the village. Often, what accompanied them were the village shop, a dim television, old textbooks, and the quiet care of grandparents.`
+    },
+    ".a01-text-3": {
+      en: `The experience of being left behind made being seen feel rare. No one seriously asked who they wanted to become, and few treated their feelings as something worth listening to. The exaggerated hair and selfies that came later may have grown out of this quiet rural childhood.`
+    },
+
+    ".a02-text-1": {
+      en: `After 2001, factories in the Pearl River Delta and Yangtze River Delta became like enormous machines in the dark, pulling in teenagers of sixteen or seventeen. Many had not finished middle school. They left home with a bag on their backs, and the first things they met were not the city, but factory gates, dormitories, and work badges.`
+    },
+    ".a02-text-2": {
+      en: `They stood beside assembly lines in electronics, garment, and toy factories for twelve hours a day, sometimes longer. They tightened screws, cut loose threads, assembled parts, and rushed orders. Fingers were worn raw, eyes grew sore, and the sound of machines covered human voices. The body was trained into repetition.`
+    },
+    ".a02-text-3": {
+      en: `After working late into the night, they returned to dorm rooms shared by eight or twelve people. The air held sweat, detergent, and exhaustion. Wages were low, leave was difficult, and sometimes even getting paid meant waiting. Cheap internet cafés became the only places where they could breathe.`
+    },
+    ".a02-text-4": {
+      en: `The factory needed their hands, not their names. It was inside this hardship that they began to ask: beyond work, overtime, and entering another factory, could I still have a form that belongs to me?`
+    },
+
+    ".a03-text-1": {
+      en: `At some point, someone posted a new look on QQ Zone — hair dyed bright red, standing high upright. Soon, more and more people began to imitate it.<span class="a03-gap"></span>The visual kei bands from Japan and goth culture from Europe and America gave them inspiration, but they localized it in their own way: no expensive leather jackets or instruments were needed, only a cheap can of hair gel, a box of hair dye, and a computer with internet access.`
+    },
+    ".a03-text-2": {
+      en: `They gave this style an English-sounding name: Shamate, from “Smart.” It meant fashionable, clever. It was their most hopeful expectation for themselves.`
+    },
+    ".a03-text-3": {
+      en: `The hairstyles became increasingly exaggerated — rainbow colors, spiked hair, long bangs covering half the face. The clothes became increasingly bright — fluorescent pink tight T-shirts, glitter belts, silver necklaces. In photos, they posed in all kinds of “cool” gestures, with factory dorms, roller rinks, or small roadside flowerbeds as their backgrounds.`
+    },
+    ".a03-text-4": {
+      en: `They also invented a writing system of their own: Martian script. “I love you” became “莪噯伱,” and “sadness” became “悲傷菿岥晫.” To outsiders it looked unreadable, but within their world it was a shared code.`
+    },
+
+    ".a04-text-1": {
+      en: `Around 2010, Shamate reached its peak. QQ “families” flourished everywhere — Zang’ai Family, Canxue Family, Leihen Family... Luo Fuxing, known as the “godfather of Shamate,” managed 2,500 core members alone, with more than 200,000 active members under him.`
+    },
+    ".a04-text-2": {
+      en: `They were no longer only virtual presences online. Offline gatherings began to appear — in roller rinks, KTVs, or parks in different cities, groups of young people with rainbow hair met to take photos, chat, and encourage one another. Unable to find belonging in reality, they found “family” within Shamate groups.`
+    },
+    ".a04-text-3": {
+      en: `A subcultural scene of this scale and organization was almost unprecedented at the time. They did not realize that they were creating history.`
+    },
+    ".a04-text-4": {
+      en: `Mainstream society began to notice them. At first it was curiosity, then confusion, and finally ridicule. Labels such as “non-mainstream,” “brainless,” and “Shamate” began appearing across forums and media. But at that moment Shamate was still celebrating. They thought being seen was a victory, even if it meant being insulted.`
+    },
+
+    ".a05-text-1": {
+      en: `Starting in 2012, an “anti-Shamate” wave rose across major platforms. On Baidu Tieba, an “Anti-Shamate Bar” appeared, where members organized raids to attack Shamate family spaces.<br><br>On Weibo, influential accounts led the mockery, turning Shamate photos into memes with captions such as “this is the aesthetic of the urban-rural fringe.”<br><br>Mainstream media began reporting on the phenomenon, often with headlines like: “Investigation of the ‘Shamate’ Phenomenon: Fashion or Brain Damage?”`
+    },
+    ".a05-text-2": {
+      en: `More terrifying things happened offline. Some organizers launched “street haircut” actions, deliberately stopping Shamate youth in public spaces and forcibly cutting off their hair.<br><br>The videos were uploaded online and received hundreds of thousands of likes. The comments were full of applause: “Serves them right.” “They should have been fixed long ago.”`
+    },
+    ".a05-text-3": {
+      en: `They were deprived of their final form of expression. That upright strand of hair was the only thing they could still control for themselves.`
+    },
+
+    ".a06-text-1": {
+      en: `In 2013, the nationwide “Clean Internet Campaign” began. Shamate, labeled as a typical example of “vulgar, lowbrow, and kitsch” culture, was placed on the list of things to be cleaned up.<br><br>Large numbers of QQ groups were forcibly disbanded, Tieba forums were shut down, and photos in QQ Zone were deleted in batches. Many Shamate accounts remain frozen forever at “last login: 2013.”`
+    },
+    ".a06-text-2": {
+      en: `Most of them cut their hair, deleted their QQ Zone photos, and left all family groups. No one knew where they went.<br><br>Most returned to assembly lines, continuing the same repetitive work day after day. Some got married, some had children, and some kept moving between different factories.`
+    },
+    ".a06-text-3": {
+      en: `For more than a decade, this history was not written into any textbook or collected by any museum. Online, you can only find scattered screenshots, blurred memories, and the malicious memes from that time. No one seriously asked: Who were they? Why were they like that? What happened to them afterward?`
+    }
+  };
+
+  const textNodes = Object.keys(translations)
+    .map(selector => document.querySelector(selector))
+    .filter(Boolean);
+
+  textNodes.forEach(el => {
+    el.dataset.zh = el.innerHTML.trim();
+  });
+
+  function setLanguage(lang) {
+    body.dataset.lang = lang;
+
+    textNodes.forEach(el => {
+      const selector = Object.keys(translations).find(s => el.matches(s));
+      if (!selector) return;
+
+      if (lang === "en") {
+        el.innerHTML = translations[selector].en;
+      } else {
+        el.innerHTML = el.dataset.zh;
+      }
+    });
+  }
+
+  langToggle.addEventListener("click", function () {
+    const current = body.dataset.lang || "zh";
+    setLanguage(current === "zh" ? "en" : "zh");
+  });
+
+  setLanguage(body.dataset.lang || "zh");
+})();
+
+</script>
+<script>
+/* ===== FIGURE CLICK: auto-open detail image by figure class name ===== */
+(function () {
+  const overlay = document.getElementById("overlay");
+  const overlayImage = document.getElementById("overlayImage");
+  const overlayPlaceholder = document.getElementById("overlayPlaceholder");
+  const overlayClose = document.getElementById("overlayClose");
+  const overlayBg = document.querySelector(".overlay-bg");
+  const overlayCaption = document.getElementById("overlayCaption");
+
+  if (!overlay || !overlayImage || !overlayPlaceholder) return;
+
+  function getFigureName(figure, index) {
+    const name = Array.from(figure.classList).find(function (cls) {
+      return /^a\d{2}-img-\d+$/.test(cls);
+    });
+
+    return name || "image-" + (index + 1);
+  }
+
+  function getDetailSrc(figure, index) {
+    const manualSrc = figure.getAttribute("data-detail");
+    if (manualSrc) return manualSrc;
+
+    const name = getFigureName(figure, index);
+    if (!name) return "";
+
+    /*
+      自动规则：
+      时间线封面 class = a02-img-1
+      弹窗 detail 图 = detail/a02-img-1-detail.jpg
+
+      以后只要把图片拖进 detail 文件夹，按这个格式命名，
+      就不用再给每个 figure 手动写 data-detail。
+    */
+    return "detail/" + name + "-detail.jpg";
+  }
+
+
+  const ARCHIVE_CAPTIONS = {
+    "a01-img-1": {
+      zh: `这张图像把故事带回到村庄。很多杀马特青年并不是从城市开始的，而是从父母离家后的空屋、祖辈的照看、山路和田埂开始的。童年里最常出现的不是拥抱，而是等待：等过年，等电话，等一个大人回头看见自己。`,
+      en: `This image brings the story back to the village. Many Shamate youths did not begin in the city, but in houses made quiet after their parents left, in the care of grandparents, beside mountain roads and fields. What appeared most often in childhood was not embrace, but waiting: waiting for New Year, waiting for a phone call, waiting for an adult to turn back and see them.`
+    },
+    "a01-img-2": {
+      zh: `农村并不是浪漫的背景，而是一种被留在原地的生活。课本、老屋、村口小卖部和电视机，构成了他们最早的世界。远处的城市只在屏幕里发光，也正因为遥远，才变成一种可以想象的出口。`,
+      en: `The countryside was not a romantic background, but a life of being left in place. Textbooks, old houses, village shops, and television formed their earliest world. The distant city only glowed on screens; precisely because it was far away, it became an imagined exit.`
+    },
+    "a01-img-3": {
+      zh: `留守儿童的孤独并不总是以哭声出现，它更多时候是一种安静的习惯：不麻烦别人，不表达需要，也不期待被认真询问。后来那些夸张的发型像是从这种沉默里突然长出的植物，带刺、明亮，也拼命想活。`,
+      en: `The loneliness of left-behind children did not always appear as crying. More often, it became a quiet habit: not troubling others, not expressing needs, not expecting to be seriously asked. The exaggerated hairstyles that came later were like plants suddenly growing out of this silence: thorny, bright, and desperately alive.`
+    },
+
+    "a02-img-1": {
+      zh: `他们离开家乡，并不是马上进入“城市生活”，而是先进了工厂。厂门像一道新的边界，门外是招聘广告和人流，门内是工牌、考勤、夜班和一排排机器。很多人还没长成大人，就先学会了把一天交给流水线。`,
+      en: `Leaving home did not mean entering “city life”; it meant entering the factory first. The gate became a new border. Outside were job ads and moving crowds; inside were badges, attendance clocks, night shifts, and rows of machines. Many had not yet grown into adults before learning to give a whole day to the assembly line.`
+    },
+    "a02-img-2": {
+      zh: `流水线不问情绪，也不问名字。它只要求手快一点、眼睛别错、身体别停。拧螺丝、剪线头、装零件、赶货，这些动作一遍遍重复，直到人也像机器的一部分。`,
+      en: `The assembly line did not ask about feelings or names. It only demanded faster hands, sharper eyes, and a body that would not stop. Tightening screws, cutting threads, assembling parts, rushing orders—these gestures repeated until the person almost became part of the machine.`
+    },
+    "a02-img-3": {
+      zh: `一天结束时，最累的不是某一个动作，而是看不见尽头的重复。宿舍里挤着很多张床，空气里有汗味和洗衣粉味。下班后的网吧，不是娱乐那么简单，而是他们从工厂时间里偷回来的一小口呼吸。`,
+      en: `At the end of the day, the heaviest burden was not one single movement, but repetition without an end in sight. Dormitories were packed with beds; the air smelled of sweat and detergent. The internet café after work was not simply entertainment, but a small breath stolen back from factory time.`
+    },
+    "a02-img-4": {
+      zh: `正因为白天太像编号，夜晚的头像、签名和自拍才显得重要。它们不是逃避现实，而是在疲惫之后留下的一点自我证明：我不只是工位上的一双手，我也有颜色、名字和想被看见的愿望。`,
+      en: `Because the daytime reduced them to numbers, avatars, signatures, and selfies at night became important. They were not an escape from reality, but a small proof of self after exhaustion: I am not only a pair of hands at a workstation; I also have color, a name, and a desire to be seen.`
+    },
+
+    "a03-img-1": {
+      zh: `杀马特并不是从舞台或学院里诞生的。它从厂区附近的理发店、网吧座位、宿舍镜子和夜晚的街边慢慢长出来。它没有昂贵的材料，只有发胶、染膏和一种强烈的愿望：不要再和背景融为一体。`,
+      en: `Shamate was not born on a stage or inside an academy. It grew slowly from barbershops near factories, internet café seats, dormitory mirrors, and streets at night. It had no expensive materials, only hair gel, dye, and a fierce wish not to blend back into the background.`
+    },
+    "a03-img-2": {
+      zh: `一罐十几块钱的发胶，可以把一整天被机器压平的身体重新竖起来。那些像仙人掌一样炸开的发型，并不是轻浮的装饰，而是在工厂生活的沙漠里，短暂开出的、带刺的花。`,
+      en: `A cheap can of hair gel could lift a body flattened all day by machines. Those cactus-like hairstyles were not frivolous decoration; they were brief, thorned flowers blooming in the desert of factory life.`
+    },
+    "a03-img-3": {
+      zh: `这些姿势看起来夸张，却不是为了取悦镜头。它们更像是在对城市说：我不是流水线上的一个动作，不是宿舍里一张床位，不是工牌上的一个号码。我也有脸，有身体，有想象力。`,
+      en: `These poses may look exaggerated, but they were not made to please the camera. They sound more like a statement to the city: I am not a movement on the assembly line, not a bunk in a dormitory, not a number on a badge. I have a face, a body, and imagination.`
+    },
+    "a03-img-4": {
+      zh: `遮住半张脸的刘海像保护，也像反击。它让观看变得不那么顺从：你可以看见我，但不能完整占有我；你可以嘲笑我，却无法把我重新压回那个安静、朴素、没有轮廓的样子。`,
+      en: `Bangs covering half the face were both protection and resistance. They made being seen less obedient: you may see me, but you cannot fully possess me; you may laugh at me, but you cannot push me back into a quiet, plain, shapeless form.`
+    },
+    "a03-img-5": {
+      zh: `火星文、自拍和高饱和头发共同组成一种秘密语言。外人说它难懂、幼稚、低级，可同伴一眼就能认出：这里有人和我一样孤单，也和我一样不愿意就这样消失。`,
+      en: `Martian script, selfies, and highly saturated hair formed a secret language. Outsiders called it unreadable, childish, and vulgar, but peers could recognize it at once: someone here is lonely like me, and also unwilling to disappear like this.`
+    },
+
+    "a04-img-1": {
+      zh: `当现实里的家长期缺席，网络家族就成了另一种亲密关系。那些“葬爱”“残血”“泪痕”的名字也许夸张，却替很多夜班后的年轻人保存过一种被接住的感觉：至少在这里，我不是一个人。`,
+      en: `When family in real life was often absent, online clans became another form of intimacy. Names like “Buried Love,” “Remnant Blood,” and “Tear Mark” may sound dramatic, but they preserved a feeling of being held for many young people after night shifts: at least here, I am not alone.`
+    },
+    "a04-img-2": {
+      zh: `一张合影保存的不只是造型，而是短暂的集体证据。那些并排站在一起的头发、衣服和身体，在对彼此说：原来不是只有我这样，原来我们真的曾经聚在一起。`,
+      en: `A group photo preserves not only style, but a brief piece of collective evidence. The hair, clothing, and bodies standing side by side say to one another: I was not the only one like this; we really were gathered together once.`
+    },
+    "a04-img-3": {
+      zh: `从QQ头像到真实身体，从群聊到溜冰场，虚拟关系在某一刻变成了可以触碰的相遇。对常年在工厂和出租屋之间移动的人来说，这样的聚会像城市夹缝里短暂出现的精神绿洲。`,
+      en: `From QQ avatar to real body, from group chat to roller rink, virtual relations briefly became touchable encounters. For people moving between factories and rented rooms, such gatherings were like temporary spiritual oases appearing in the cracks of the city.`
+    },
+    "a04-img-4": {
+      zh: `被看见最初像一种胜利。可主流社会的目光很快从好奇变成围观，从围观变成嘲笑。那一刻，可见性不再只是光，也变成了压力，甚至变成了伤害他们的工具。`,
+      en: `At first, being seen felt like a victory. But the mainstream gaze quickly shifted from curiosity to spectacle, and from spectacle to ridicule. At that moment, visibility was no longer only light; it also became pressure, even a tool that could wound them.`
+    },
+    "a04-img-5": {
+      zh: `他们在镜头前靠近彼此，把鲜艳的头发并排放在一起。那不是单纯摆拍，而是一种互相证明：我们在同一个城市边缘发过光，我们曾经用自己的方式做过家人。`,
+      en: `They moved close to one another in front of the camera, placing bright hair side by side. It was not simply posing, but mutual proof: we once glowed on the same urban edge; we once became family in our own way.`
+    },
+    "a04-img-6": {
+      zh: `当杀马特开始被命名、报道、围观，它也开始失去解释自己的权利。一个原本属于年轻工人的自我称呼，逐渐变成他人嘴里的标签；一场草根的美学实践，也被消费成笑料和奇观。`,
+      en: `When Shamate began to be named, reported, and watched, it also began to lose the right to explain itself. A self-name once belonging to young workers slowly became a label in other people’s mouths; a grassroots aesthetic practice was consumed as joke and spectacle.`
+    },
+
+    "a05-img-1": {
+      zh: `当照片被做成表情包和笑料，图像里具体的人被推到了背后。真正被否定的不是某一种发型，而是底层年轻人拥有审美、拥有夸张、拥有不合群外表的资格。`,
+      en: `When photos were turned into memes and jokes, the specific people inside them were pushed into the background. What was denied was not only a hairstyle, but the right of working-class youth to have taste, excess, and an appearance that refused conformity.`
+    },
+    "a05-img-2": {
+      zh: `强行剪掉头发的暴力之所以刺痛，是因为它常常伪装成“纠正审美”。可那根头发可能是他们少数还能自己决定的东西。剪掉它，也是在剪掉一个人向世界举起的信号。`,
+      en: `The violence of forcibly cutting hair hurts because it often disguised itself as “correcting taste.” But that hair may have been one of the few things they could still decide for themselves. To cut it off was also to cut away a signal a person had raised toward the world.`
+    },
+    "a05-img-3": {
+      zh: `嘲笑之后，很多人学会了沉默。不是因为他们不再想表达，而是因为表达变成了会带来伤害的证据。曾经竖起来的头发低了下去，许多声音也被重新压回流水线的轰鸣里。`,
+      en: `After ridicule, many learned silence. Not because they no longer wanted to express themselves, but because expression had become evidence that could bring harm. The hair that once stood upright fell, and many voices were pressed back into the roar of the assembly line.`
+    },
+
+    "a06-img-1": {
+      zh: `账号停止更新的那一天，并不是故事结束的那一天。只是一个公共页面沉了下去，一个人重新回到工厂、城中村和无法被搜索到的生活里。历史没有消失，它只是换成了更安静的形态。`,
+      en: `The day an account stopped updating was not the day the story ended. A public page simply sank, and a person returned to factories, urban villages, and a life that could no longer be searched. History did not disappear; it only took a quieter form.`
+    },
+    "a06-img-2": {
+      zh: `很多人剪掉头发、删掉空间、退出家族群，好像从图像里消失了。但消失不等于不存在。他们继续搬货、上班、租房、结婚、养孩子，只是那些曾经发亮的部分被生活重新遮住了。`,
+      en: `Many cut their hair, deleted their spaces, and left clan groups, as if disappearing from images. But disappearance is not nonexistence. They continued carrying goods, working, renting rooms, marrying, raising children; only the parts that once shone were covered again by life.`
+    },
+    "a06-img-3": {
+      zh: `这段历史没有被博物馆收藏，也很少被正式书写。它留在低清截图、旧账号、采访里的停顿，以及今天我们重新观看它的动作中。重新观看不是为了猎奇，而是为了把他们从笑话里还给历史。`,
+      en: `This history was not collected by museums and was rarely written formally. It remains in low-resolution screenshots, old accounts, pauses in interviews, and in the act of looking again today. To look again is not to seek novelty, but to return them from jokes back to history.`
+    }
+  };
+
+  function escapeCaptionText(value) {
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function getArchiveCaption(figure, index) {
+    const key = getFigureName(figure, index);
+    return ARCHIVE_CAPTIONS[key] || {
+      zh: "这张图像被重新放回时间线中，不再只是被观看的碎片，而是一段历史留下的痕迹。",
+      en: "This image is placed back into the timeline, no longer only a fragment to be viewed, but a trace left by history."
+    };
+  }
+
+  function resetOverlay() {
+    overlayImage.classList.remove("is-loaded");
+    overlayImage.removeAttribute("src");
+    overlayPlaceholder.classList.remove("is-hidden");
+
+    if (overlayCaption) {
+      overlayCaption.classList.remove("is-visible");
+    }
+  }
+
+  function showCaptionLater(delay) {
+    if (!overlayCaption) return;
+
+    window.setTimeout(function () {
+      if (overlay.classList.contains("is-open")) {
+        overlayCaption.classList.add("is-visible");
+      }
+    }, delay);
+  }
+
+  function openOverlay(figure, index) {
+    const name = getFigureName(figure, index).toUpperCase();
+    const detailSrc = getDetailSrc(figure, index);
+
+    resetOverlay();
+
+    if (overlayCaption) {
+      const caption = getArchiveCaption(figure, index);
+      overlayCaption.innerHTML =
+        '<div class="overlay-caption-zh">' + escapeCaptionText(caption.zh) + '</div>' +
+        '<div class="overlay-caption-en">' + escapeCaptionText(caption.en) + '</div>';
+    }
+
+    overlay.classList.add("is-open");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("overlay-open");
+
+    if (!detailSrc) {
+      showCaptionLater(260);
+      return;
+    }
+
+    const probe = new Image();
+
+    probe.onload = function () {
+      overlayImage.src = detailSrc;
+      overlayPlaceholder.classList.add("is-hidden");
+
+      requestAnimationFrame(function () {
+        requestAnimationFrame(function () {
+          overlayImage.classList.add("is-loaded");
+
+          /* 注释比图片慢一步出现 */
+          showCaptionLater(280);
+        });
+      });
+    };
+
+    probe.onerror = function () {
+      console.warn("Detail image not found:", detailSrc);
+      /* 没有对应 detail 图时，保留灰底占位 */
+      showCaptionLater(260);
+    };
+
+    probe.src = detailSrc;
+  }
+
+  function closeOverlay() {
+    overlay.classList.remove("is-open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("overlay-open");
+
+    setTimeout(function () {
+      resetOverlay();
+    }, 250);
+  }
+
+  document.querySelectorAll("#horizontalStage figure").forEach(function (figure, index) {
+    figure.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      openOverlay(figure, index);
+    });
+  });
+
+  if (overlayClose) overlayClose.addEventListener("click", closeOverlay);
+  if (overlayBg) overlayBg.addEventListener("click", closeOverlay);
+
+  window.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && overlay.classList.contains("is-open")) {
+      closeOverlay();
+    }
+  });
+})();
+</script>
+</body>
+</html>

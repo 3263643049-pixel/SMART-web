@@ -1,0 +1,1951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMART · 杀马特视觉档案</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #e60012;
+      font-family: Arial, "Helvetica Neue", sans-serif;
+    }
+
+    /* ===== INTRO TEXT SCREEN ===== */
+
+    .intro-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      background: #e60012;
+      color: #E9FFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+
+    .intro-screen.is-leaving {
+      background: #e60012;
+      pointer-events: none;
+    }
+
+    .intro-screen.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .intro-text {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate3d(-50%, -50%, 0);
+      width: min(90vw, 620px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-size: clamp(15px, 1.55vw, 22px);
+      font-weight: 800;
+      line-height: 1.25;
+      letter-spacing: -0.03em;
+      color: #E9FFFF;
+      transition: transform 0.82s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.42s ease;
+      will-change: transform, opacity;
+    }
+
+    .intro-screen.is-leaving .intro-text {
+      transform: translate3d(-50%, -170vh, 0);
+      opacity: 0;
+    }
+
+    .intro-block {
+      width: 100%;
+      margin-bottom: 36px;
+      text-align: center;
+      opacity: 0;
+      transform: translate3d(0, 16px, 0);
+      animation: textIn 1.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      will-change: opacity, transform;
+      backface-visibility: hidden;
+    }
+
+    .intro-block:nth-child(1) {
+      margin-bottom: 72px;
+      animation-delay: 0.35s;
+    }
+
+    .intro-block:nth-child(2) { animation-delay: 1.55s; }
+    .intro-block:nth-child(3) { animation-delay: 2.75s; }
+    .intro-block:nth-child(4) { animation-delay: 3.95s; }
+
+    .intro-block:last-child {
+      margin-bottom: 0;
+    }
+
+    .intro-block .en {
+      display: block;
+      margin-top: 3px;
+      text-align: center;
+    }
+
+    @keyframes textIn {
+      0% {
+        opacity: 0;
+        transform: translate3d(0, 20px, 0);
+      }
+
+      55% {
+        opacity: 0.72;
+      }
+
+      100% {
+        opacity: 1;
+        transform: translate3d(0, 0, 0);
+      }
+    }
+
+    /* ===== SMART BUTTON RED SCREEN ===== */
+
+   .smart-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  background: #e60012;
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 0, 0);
+
+  transition:
+    opacity 0.35s ease,
+    visibility 0.35s ease,
+    transform 1.05s cubic-bezier(0.22, 1, 0.36, 1);
+
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: paint;
+}
+
+    .smart-screen.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 0, 0);
+}
+
+.smart-screen.is-sliding-down {
+  opacity: 1;
+  visibility: visible;
+  transform: translate3d(0, 100vh, 0);
+  pointer-events: none;
+}
+
+  .smart-btn {
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: transparent;
+  color: #ffe600;
+
+  padding: 12px 28px;
+
+  font-size: clamp(15px, 1.55vw, 22px);
+  font-weight: 900;
+  letter-spacing: 0;
+  cursor: pointer;
+  line-height: 1;
+
+  text-shadow:
+    0 0 6px rgba(0, 0, 0, 0.35),
+    0 0 14px rgba(255, 230, 0, 0.28);
+
+  opacity: 0;
+  transform: translate3d(0, 38vh, 0);
+
+  transition:
+    transform 0.72s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.42s ease,
+    background-color 0.2s ease,
+    color 0.2s ease;
+
+  will-change: transform, opacity;
+}
+
+    .smart-screen.is-visible .smart-btn {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      transition-delay: 0.06s;
+    }
+
+    .smart-btn:hover {
+  transform: translate3d(0, 0, 0) scale(1.04);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+    /* ===== 3D MODEL HOME SCREEN ===== */
+
+   .image-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+
+  background-color: #000000;
+  background-image: url("./images/enter-bg.gif");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center 100%;
+
+  opacity: 1;
+  visibility: visible;
+
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+
+    /* ===== HOME BOTTOM MENU: History / Hair Archive / Interview ===== */
+
+.home-top-menu {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 44px;
+  z-index: 10020;
+
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: center;
+
+  width: 100vw;
+  padding: 0 8vw;
+
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  transform: translate3d(0, 120px, 0);
+
+  transition:
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.45s ease,
+    visibility 0.45s ease;
+}
+
+/* SMART 3D 开始旋转时，三个功能键从下面滑上来 */
+body.home-ready .home-top-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  transform: translate3d(0, 0, 0);
+
+  transition-delay: 0.08s;
+}
+
+/* 取消原来右上角 fixed 定位 */
+.history-link,
+.list-link,
+.interview-link {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+}
+
+/* 三个按钮平均分布 */
+.history-link {
+  justify-self: start;
+}
+
+.list-link {
+  justify-self: center;
+}
+
+.interview-link {
+  justify-self: end;
+}
+
+/* ===== CLEAN SOFT 3D MENU TEXT ===== */
+
+.home-top-link,
+.home-top-link:visited {
+  position: relative;
+  display: inline-block;
+
+  border: 0;
+  background: transparent;
+
+  color: #fff200;
+
+  font-family: Arial, "Helvetica Neue", sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  text-decoration: none;
+  cursor: pointer;
+
+  -webkit-text-stroke: 0.8px #101010;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+
+    0 -1px 0 rgba(255, 255, 255, 0.9),
+    0 0 6px rgba(255, 242, 0, 0.75),
+    0 0 14px rgba(120, 255, 0, 0.55);
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 0.25s ease,
+    color 0.25s ease;
+}
+
+.home-top-link:hover {
+  color: #ffff00;
+  text-decoration: none;
+  transform: translateY(-3px) scale(1.05);
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 242, 0, 0.95),
+    0 0 18px rgba(120, 255, 0, 0.75);
+}
+
+body.list-open .list-link {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.history-entering .home-top-menu {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transform: translate3d(0, 120px, 0) !important;
+  transition: opacity 0.35s ease, transform 0.45s ease !important;
+}
+
+    /* ===== FULL RIGHT LIST PANEL ===== */
+
+    .list-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 25vw;
+      height: 100vh;
+      z-index: 10000;
+      background: #FF2FD2;
+      color: #ffffff;
+      transform: translateX(100%);
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .list-panel.is-open {
+      transform: translateX(0);
+    }
+
+    .list-panel-header {
+      height: 86px;
+      padding: 24px 28px 18px 28px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      border-bottom: 1px solid rgba(255,255,255,0.42);
+    }
+
+    .list-panel-title,
+    .list-close {
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .list-close {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .list-items {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .list-item,
+    .list-item:visited {
+      position: relative;
+      min-height: 92px;
+      padding: 18px 58px 16px 28px;
+      color: #ffffff;
+      text-decoration: none;
+      border-bottom: 1px solid rgba(255,255,255,0.42);
+      display: grid;
+      grid-template-columns: 70px 1fr;
+      grid-template-rows: auto auto;
+      column-gap: 18px;
+      row-gap: 8px;
+    }
+
+    .list-item:hover {
+      background: rgba(255,255,255,0.12);
+    }
+
+    .list-item-title {
+      grid-column: 1 / span 2;
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.05em;
+    }
+
+    .list-item-time {
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .list-item-sub {
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .list-item-arrow {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 24px;
+  font-weight: 900;
+  color: #72FFDA;
+}
+
+    body.history-entering .list-panel {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ===== HISTORY CLICK: RED PANEL FULLSCREEN TRANSITION ===== */
+
+    .history-transition-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 11000;
+      width: 100vw;
+      height: 100vh;
+      background: #000D9A;
+color: #D8DEA2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateX(100%);
+      opacity: 1;
+      visibility: hidden;
+      pointer-events: none;
+      transition:
+  transform 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+  opacity 1.6s ease,
+  visibility 1.6s ease;
+    }
+
+    .history-transition-panel.is-active {
+      transform: translateX(0);
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .history-transition-panel.is-fading {
+  opacity: 0;
+  visibility: visible;
+  pointer-events: none;
+}
+
+    .history-transition-content {
+      position: relative;
+      width: 90vw;
+      height: 160px;
+      text-align: center;
+    }
+
+    .history-transition-line {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 100%;
+      opacity: 0;
+      transform: translate(-50%, -50%) translateY(18px);
+      color: #D8DEA2;
+      font-family: Arial, "Helvetica Neue", sans-serif;
+      font-size: clamp(15px, 1.55vw, 22px);
+      font-weight: 900;
+      line-height: 1.12;
+      letter-spacing: -0.04em;
+    }
+
+    .history-transition-line .en {
+      margin-top: 4px;
+    }
+
+    .history-transition-panel.is-active .history-line-1 {
+      animation: historyLineOne 2.1s ease forwards;
+      animation-delay: 1s;
+    }
+
+    .history-transition-panel.is-active .history-line-2 {
+      animation: historyLineTwo 2.5s ease forwards;
+      animation-delay: 3.2s;
+    }
+
+    body.history-fading-to-black .image-screen {
+  background-image: none;
+  background-color: #000D9A;
+    }
+
+    body.history-fading-to-black .smart-model {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    @keyframes historyLineOne {
+      0% { opacity: 0; transform: translate(-50%, -50%) translateY(18px); }
+      25% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+      68% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) translateY(-14px); }
+    }
+
+    @keyframes historyLineTwo {
+      0% { opacity: 0; transform: translate(-50%, -50%) translateY(18px); }
+      25% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+      72% { opacity: 1; transform: translate(-50%, -50%) translateY(0); }
+      100% { opacity: 0; transform: translate(-50%, -50%) translateY(-14px); }
+    }
+  /* ===== FINAL LIST COLORS ===== */
+
+.list-panel {
+  background: #FF2FD2 !important;
+}
+
+.list-panel,
+.list-panel-title,
+.list-close,
+.list-item,
+.list-item:visited,
+.list-item-title,
+.list-item-time,
+.list-item-sub,
+.list-item-arrow {
+  color: #72FFDA !important;
+}
+
+.list-panel-header,
+.list-item,
+.list-item:visited {
+  border-color: rgba(0, 243, 178, 0.45) !important;
+}
+  /* 顶部 List / Close 改回黄色 */
+.list-panel-title,
+.list-close {
+  color: #ffe600 !important;
+}
+/* ===== HAIR ARCHIVE ENTRY TRANSITION ===== */
+
+body.hair-archive-entering .history-transition-panel {
+  background: #FF2FD2 !important;
+  color: #72FFDA !important;
+}
+
+body.hair-archive-entering .history-transition-line {
+  color: #72FFDA !important;
+}
+body.hair-archive-entering.history-fading-to-black .image-screen {
+  background-image: none !important;
+  background-color: #FF2FD2 !important;
+}
+
+body.hair-archive-entering.history-fading-to-black .smart-model {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+/* ===== INTERVIEW ENTRY TRANSITION ===== */
+
+body.interview-entering .history-transition-panel {
+  background: #43EE43 !important;
+  color: #5A2BAB !important;
+}
+
+body.interview-entering .history-transition-line {
+  color: #5A2BAB !important;
+}
+
+body.interview-entering.history-fading-to-black .image-screen {
+  background-image: none !important;
+  background-color: #43EE43 !important;
+}
+
+body.interview-entering.history-fading-to-black .smart-model {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+
+/* ===== SMART 3D MODEL RESTORE / 强制恢复首页 3D 模型居中 ===== */
+.smart-model {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: transparent !important;
+  --poster-color: transparent;
+  z-index: 2 !important;
+
+  pointer-events: none !important;
+
+  transform: translate3d(0, 0, 0) !important;
+  backface-visibility: hidden;
+}
+/* ===== bilingual home menu balance ===== */
+
+.home-top-link {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 0.16em !important;
+}
+
+/* 中文稍微小一点、阴影轻一点，避免太堵 */
+.home-top-link .cn {
+  font-size: 26px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.09em !important;
+
+  -webkit-text-stroke: 0.55px #101010 !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 0.9),
+    0 0 6px rgba(255, 242, 0, 0.75) !important;
+}
+
+/* 英文大一点，但阴影也收轻，和中文在同一视觉重量 */
+.home-top-link .en {
+  font-size: 29px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.07em !important;
+  transform: translateY(2px) !important;
+
+  -webkit-text-stroke: 0.65px #101010 !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 0.9),
+    0 0 6px rgba(255, 242, 0, 0.75) !important;
+}
+/* ===== FINAL: restore yellow 3D menu text ===== */
+
+.home-top-link {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 0.16em !important;
+  filter: none !important;
+}
+
+.home-top-link .cn,
+.home-top-link .en {
+  color: #fff200 !important;
+  -webkit-text-fill-color: #fff200 !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+
+  -webkit-text-stroke: 0.65px #101010 !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 0.9),
+    0 0 6px rgba(255, 242, 0, 0.75),
+    0 0 14px rgba(120, 255, 0, 0.55) !important;
+
+  filter: none !important;
+  animation: none !important;
+}
+
+.home-top-link .cn::after,
+.home-top-link .en::after {
+  content: none !important;
+  display: none !important;
+}
+
+.home-top-link .cn {
+  font-size: 26px !important;
+  transform: translateY(0px) !important;
+}
+
+.home-top-link .en {
+  font-size: 29px !important;
+  transform: translateY(2px) !important;
+}
+/* ===== FINAL: desktop app style icons for home buttons ===== */
+
+/* 每个首页按钮变成：图标在上，文字在下 */
+.home-top-link.app-button {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 10px !important;
+
+  width: 150px !important;
+  min-height: 150px !important;
+
+  text-align: center !important;
+}
+
+/* 桌面应用图标 */
+.app-icon {
+  width: 78px !important;
+  height: 78px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.55)) !important;
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.25s ease !important;
+}
+
+/* 图标下面的中英文文字 */
+.app-label {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: center !important;
+  gap: 0.16em !important;
+}
+
+/* 鼠标扫过时，整个按钮一起弹起来 */
+.home-top-link.app-button:hover {
+  transform: translateY(-6px) scale(1.05) !important;
+}
+
+/* 鼠标扫过时，图标也轻微变大 */
+.home-top-link.app-button:hover .app-icon {
+  transform: translateY(-3px) scale(1.08) !important;
+
+  filter:
+    drop-shadow(3px 3px 0 #101010)
+    drop-shadow(0 0 10px rgba(255, 242, 0, 0.9))
+    drop-shadow(0 0 20px rgba(120, 255, 0, 0.65)) !important;
+}
+/* ===== FINAL: smaller icons before text ===== */
+
+/* 三个首页按钮：图标在左，文字在右 */
+.home-top-link.app-button {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+
+  width: auto !important;
+  min-height: auto !important;
+
+  text-align: left !important;
+}
+
+/* 图标缩小 */
+.app-icon {
+  width: 42px !important;
+  height: 42px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  transform: translateY(-2px) !important;
+
+  filter:
+    drop-shadow(1.5px 1.5px 0 #101010)
+    drop-shadow(0 0 5px rgba(255, 242, 0, 0.45)) !important;
+}
+
+/* 文字保持一行：中文 + 英文 */
+.app-label {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  justify-content: flex-start !important;
+
+  gap: 0.16em !important;
+  white-space: nowrap !important;
+}
+
+/* 鼠标扫过：整体轻轻弹起 */
+.home-top-link.app-button:hover {
+  transform: translateY(-3px) scale(1.04) !important;
+}
+
+/* 鼠标扫过：图标不要放大太多 */
+.home-top-link.app-button:hover .app-icon {
+  transform: translateY(-4px) scale(1.04) !important;
+
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.85))
+    drop-shadow(0 0 14px rgba(120, 255, 0, 0.55)) !important;
+}
+
+/* ===== ARCHIVE ENTRY COPY: restored solid transition ===== */
+.history-transition-panel.is-active .history-line-1 {
+  animation: historyLineOne 1.65s ease forwards;
+  animation-delay: 0.65s;
+}
+
+.history-transition-panel.is-active .history-line-2 {
+  animation: historyLineTwo 1.65s ease forwards;
+  animation-delay: 2.05s;
+}
+
+.history-transition-panel.is-active .history-line-3 {
+  animation: historyLineTwo 1.8s ease forwards;
+  animation-delay: 3.45s;
+}
+
+.history-transition-panel.is-active .history-line-4 {
+  animation: historyLineTwo 1.65s ease forwards;
+  animation-delay: 5.05s;
+}
+
+/* ===== HAIR ARCHIVE ENTRY COPY: same solid transition, new lyric ===== */
+body.hair-archive-entering .history-transition-panel.is-active .history-line-1 {
+  animation: historyLineOne 1.55s ease forwards !important;
+  animation-delay: 0.65s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-2 {
+  animation: historyLineTwo 1.55s ease forwards !important;
+  animation-delay: 2.05s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-3 {
+  animation: historyLineTwo 1.65s ease forwards !important;
+  animation-delay: 3.45s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-4 {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+/* ===== INTERVIEW ENTRY COPY: same solid transition, new voice copy ===== */
+body.interview-entering .history-transition-panel.is-active .history-line-1 {
+  animation: historyLineOne 1.8s ease forwards !important;
+  animation-delay: 0.75s !important;
+}
+
+body.interview-entering .history-transition-panel.is-active .history-line-2 {
+  animation: historyLineTwo 1.8s ease forwards !important;
+  animation-delay: 2.45s !important;
+}
+
+body.interview-entering .history-transition-panel.is-active .history-line-3,
+body.interview-entering .history-transition-panel.is-active .history-line-4 {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+  
+
+/* ===== PATCH: colorful index entrance + colorful intro text ===== */
+/* 1. 第二幕 SMART 进入按钮：从普通胶囊按钮改成更像“入口图标”的彩色按钮 */
+.smart-btn {
+  position: relative !important;
+  min-width: 198px !important;
+  min-height: 82px !important;
+  padding: 0 40px !important;
+  border: 3px solid #ffffff !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(#e60012, #e60012) padding-box,
+    linear-gradient(90deg, #FF2A2A, #FF8A00, #FBFF00, #87EF00, #00FFD5, #2F6BFF, #B23CFF) border-box !important;
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: padding-box, border-box !important;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.18),
+    0 0 24px rgba(255, 242, 0, 0.38),
+    0 0 42px rgba(0, 255, 213, 0.18) !important;
+
+  font-size: clamp(26px, 3.2vw, 48px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.07em !important;
+  line-height: 1 !important;
+
+  text-shadow: none !important;
+  overflow: hidden !important;
+}
+
+.smart-btn::before {
+  content: "SMART" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding-bottom: 2px !important;
+
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00 0%, #87EF00 18%, #00FFD5 36%, #2F6BFF 56%, #B23CFF 72%, #FF2A2A 88%, #FF8A00 100%) !important;
+  background-size: 220% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0.8px rgba(16,16,16,0.85) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255,255,255,0.9),
+    0 0 8px rgba(255,242,0,0.78),
+    0 0 18px rgba(0,255,213,0.48) !important;
+
+  animation: smartColorDrift 5.5s linear infinite !important;
+}
+
+.smart-btn::after {
+  content: "" !important;
+  position: absolute !important;
+  left: -45% !important;
+  top: -80% !important;
+  width: 38% !important;
+  height: 260% !important;
+  background: rgba(255,255,255,0.42) !important;
+  transform: rotate(22deg) translateX(0) !important;
+  filter: blur(9px) !important;
+  opacity: 0.35 !important;
+  animation: smartButtonShine 4.2s ease-in-out infinite !important;
+}
+
+.smart-btn:hover {
+  transform: translate3d(0, 0, 0) scale(1.06) !important;
+  background:
+    linear-gradient(#e60012, #e60012) padding-box,
+    linear-gradient(90deg, #FBFF00, #87EF00, #00FFD5, #2F6BFF, #B23CFF, #FF2A2A, #FF8A00) border-box !important;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.24),
+    0 0 30px rgba(255, 242, 0, 0.62),
+    0 0 56px rgba(0, 255, 213, 0.32) !important;
+}
+
+@keyframes smartColorDrift {
+  0% { background-position: 0% center; }
+  100% { background-position: 220% center; }
+}
+
+@keyframes smartButtonShine {
+  0%, 46% { transform: rotate(22deg) translateX(0); opacity: 0; }
+  58% { opacity: 0.42; }
+  78%, 100% { transform: rotate(22deg) translateX(520%); opacity: 0; }
+}
+
+/* 2. 红色开场页：所有字改成彩色，不再是纯白 */
+.intro-block,
+.intro-block .en,
+.history-transition-line,
+.history-transition-line .zh,
+.history-transition-line .en {
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00 0%, #87EF00 18%, #00FFD5 36%, #2F6BFF 55%, #B23CFF 72%, #FF2A2A 88%, #FF8A00 100%) !important;
+  background-size: 240% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0.55px rgba(255,255,255,0.88) !important;
+  text-shadow:
+    1px 1px 0 rgba(16,16,16,0.55),
+    0 0 8px rgba(255,242,0,0.48),
+    0 0 16px rgba(0,255,213,0.28) !important;
+  animation-name: textIn, introColorMove !important;
+  animation-duration: 1.55s, 7s !important;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1), linear !important;
+  animation-fill-mode: forwards, none !important;
+  animation-iteration-count: 1, infinite !important;
+}
+
+.intro-block:nth-child(1) { animation-delay: 0.35s, 0s !important; }
+.intro-block:nth-child(2) { animation-delay: 1.55s, 0s !important; }
+.intro-block:nth-child(3) { animation-delay: 2.75s, 0s !important; }
+.intro-block:nth-child(4) { animation-delay: 3.95s, 0s !important; }
+
+/* 子网页进入 loading 文案也同步彩色 */
+.history-transition-line .zh,
+.history-transition-line .en {
+  animation: introColorMove 7s linear infinite !important;
+}
+
+@keyframes introColorMove {
+  0% { background-position: 0% center; }
+  100% { background-position: 240% center; }
+}
+
+
+
+/* ===== FINAL PATCH: SMART entrance button with desktop-app icon ===== */
+.smart-btn {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+
+  min-width: 220px !important;
+  min-height: 86px !important;
+  padding: 12px 30px 12px 24px !important;
+
+  border: 3px solid #ffffff !important;
+  border-radius: 999px !important;
+  background:
+    linear-gradient(#e60012, #e60012) padding-box,
+    linear-gradient(90deg, #FF2A2A, #FF8A00, #FBFF00, #87EF00, #00FFD5, #2F6BFF, #B23CFF) border-box !important;
+
+  overflow: hidden !important;
+  box-shadow:
+    0 0 0 3px rgba(255,255,255,0.18),
+    0 0 24px rgba(255, 242, 0, 0.38),
+    0 0 42px rgba(0, 255, 213, 0.18) !important;
+}
+
+/* 不再用伪元素写 SMART，改成真实的“图标 + 文字” */
+.smart-btn::before {
+  content: none !important;
+  display: none !important;
+}
+
+.smart-entry-icon {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 46px !important;
+  height: 46px !important;
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  filter:
+    drop-shadow(1.5px 1.5px 0 #101010)
+    drop-shadow(0 0 6px rgba(255, 242, 0, 0.55)) !important;
+
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.25s ease !important;
+}
+
+.smart-entry-label {
+  position: relative !important;
+  z-index: 2 !important;
+  display: inline-block !important;
+
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: clamp(26px, 3.2vw, 46px) !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.07em !important;
+
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00 0%, #87EF00 18%, #00FFD5 36%, #2F6BFF 56%, #B23CFF 72%, #FF2A2A 88%, #FF8A00 100%) !important;
+  background-size: 220% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0.8px rgba(16,16,16,0.85) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255,255,255,0.9),
+    0 0 8px rgba(255,242,0,0.78),
+    0 0 18px rgba(0,255,213,0.48) !important;
+
+  animation: smartColorDrift 5.5s linear infinite !important;
+}
+
+.smart-btn:hover .smart-entry-icon {
+  transform: translateY(-3px) scale(1.08) !important;
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 10px rgba(255, 242, 0, 0.9))
+    drop-shadow(0 0 18px rgba(0, 255, 213, 0.65)) !important;
+}
+
+
+
+/* ===== FINAL FIX: SMART entry icon + readable label ===== */
+/* 这段放在 CSS 最后，覆盖前面导致 SMART 变黑的渐变/阴影设置 */
+.smart-btn {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+
+  min-width: 210px !important;
+  min-height: 74px !important;
+  padding: 10px 30px 10px 24px !important;
+
+  border: 3px solid #ffffff !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.16),
+    0 0 18px rgba(255, 242, 0, 0.28) !important;
+
+  overflow: visible !important;
+}
+
+.smart-btn::before,
+.smart-btn::after {
+  content: none !important;
+  display: none !important;
+}
+
+.smart-entry-icon {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 38px !important;
+  height: 38px !important;
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  transform: translateY(0) !important;
+
+  filter:
+    drop-shadow(1px 1px 0 #101010)
+    drop-shadow(0 0 5px rgba(255, 242, 0, 0.58)) !important;
+}
+
+.smart-entry-label {
+  position: relative !important;
+  z-index: 2 !important;
+  display: inline-block !important;
+
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 38px !important;
+  font-weight: 900 !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.07em !important;
+
+  color: #fff200 !important;
+  -webkit-text-fill-color: #fff200 !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+
+  -webkit-text-stroke: 0.6px #101010 !important;
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255,255,255,0.95),
+    0 0 7px rgba(255,242,0,0.85),
+    0 0 14px rgba(120,255,0,0.42) !important;
+
+  animation: none !important;
+  filter: none !important;
+  transform: translateY(1px) !important;
+}
+
+.smart-btn:hover {
+  transform: translate3d(0, 0, 0) scale(1.045) !important;
+  background: rgba(255,255,255,0.1) !important;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.2),
+    0 0 22px rgba(255, 242, 0, 0.52),
+    0 0 34px rgba(120, 255, 0, 0.24) !important;
+}
+
+.smart-btn:hover .smart-entry-icon {
+  transform: translateY(-2px) scale(1.04) !important;
+  filter:
+    drop-shadow(1.5px 1.5px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.9)) !important;
+}
+
+.smart-btn:hover .smart-entry-label {
+  color: #fff200 !important;
+  -webkit-text-fill-color: #fff200 !important;
+  transform: translateY(-1px) scale(1.02) !important;
+}
+
+
+/* ===== FINAL FIX 2: SMART entrance icon/text ratio + same colorful copy style ===== */
+/* 放在 CSS 最后，覆盖前面让 SMART 太大/太黄/和图标不对齐的设置 */
+.smart-btn {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 15px !important;
+
+  min-width: 224px !important;
+  min-height: 78px !important;
+  padding: 10px 32px 10px 26px !important;
+
+  border: 3px solid #ffffff !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.16),
+    0 0 18px rgba(255, 242, 0, 0.28) !important;
+
+  overflow: visible !important;
+}
+
+.smart-btn::before,
+.smart-btn::after {
+  content: none !important;
+  display: none !important;
+}
+
+.smart-entry-icon {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 54px !important;
+  height: 54px !important;
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  transform: translateY(-1px) !important;
+
+  filter:
+    drop-shadow(1.5px 1.5px 0 #101010)
+    drop-shadow(0 0 6px rgba(255, 242, 0, 0.58)) !important;
+}
+
+.smart-entry-label {
+  position: relative !important;
+  z-index: 2 !important;
+  display: inline-block !important;
+
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 34px !important;
+  font-weight: 900 !important;
+  line-height: 0.95 !important;
+  letter-spacing: -0.075em !important;
+
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00 0%, #87EF00 18%, #00FFD5 36%, #2F6BFF 55%, #B23CFF 72%, #FF2A2A 88%, #FF8A00 100%) !important;
+  background-size: 240% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+
+  /* 和前面红屏文案一致：彩色字 + 轻白边 + 轻阴影 */
+  -webkit-text-stroke: 0.55px rgba(255,255,255,0.88) !important;
+  text-shadow:
+    1px 1px 0 rgba(16,16,16,0.55),
+    0 0 8px rgba(255,242,0,0.48),
+    0 0 16px rgba(0,255,213,0.28) !important;
+
+  animation: introColorMove 7s linear infinite !important;
+  filter: none !important;
+  transform: translateY(1px) !important;
+}
+
+.smart-btn:hover {
+  transform: translate3d(0, 0, 0) scale(1.045) !important;
+  background: rgba(255,255,255,0.1) !important;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,0.2),
+    0 0 22px rgba(255, 242, 0, 0.52),
+    0 0 34px rgba(120, 255, 0, 0.24) !important;
+}
+
+.smart-btn:hover .smart-entry-icon {
+  transform: translateY(-3px) scale(1.05) !important;
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.9))
+    drop-shadow(0 0 14px rgba(0, 255, 213, 0.55)) !important;
+}
+
+.smart-btn:hover .smart-entry-label {
+  transform: translateY(-1px) scale(1.015) !important;
+}
+
+
+
+/* ===== FINAL FIX 4: no white frame, bigger icon, icon close to SMART ===== */
+.smart-btn {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+
+  min-width: auto !important;
+  min-height: auto !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 0 !important;
+
+  border: 0 !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.smart-btn::before,
+.smart-btn::after {
+  content: none !important;
+  display: none !important;
+}
+
+.smart-entry-icon {
+  position: relative !important;
+  z-index: 2 !important;
+  width: 86px !important;
+  height: 86px !important;
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+  transform: translateY(0) !important;
+  margin-right: -4px !important;
+
+  filter:
+    drop-shadow(1.5px 1.5px 0 #101010)
+    drop-shadow(0 0 7px rgba(255, 242, 0, 0.7)) !important;
+}
+
+.smart-entry-label {
+  position: relative !important;
+  z-index: 2 !important;
+  display: inline-block !important;
+
+  font-size: 36px !important;
+  line-height: 1 !important;
+  transform: translateY(1px) !important;
+  margin-left: -2px !important;
+
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00 0%, #87EF00 18%, #00FFD5 36%, #2F6BFF 55%, #B23CFF 72%, #FF2A2A 88%, #FF8A00 100%) !important;
+  background-size: 240% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0.55px rgba(255,255,255,0.88) !important;
+  text-shadow:
+    1px 1px 0 rgba(16,16,16,0.55),
+    0 0 8px rgba(255,242,0,0.48),
+    0 0 16px rgba(0,255,213,0.28) !important;
+  animation: introColorMove 7s linear infinite !important;
+}
+
+.smart-btn:hover {
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: translate3d(0, 0, 0) scale(1.045) !important;
+}
+
+.smart-btn:hover .smart-entry-icon {
+  transform: translateY(-2px) scale(1.04) !important;
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 10px rgba(255, 242, 0, 0.9))
+    drop-shadow(0 0 16px rgba(0, 255, 213, 0.58)) !important;
+}
+
+.smart-btn:hover .smart-entry-label {
+  transform: translateY(-1px) scale(1.015) !important;
+}
+
+
+/* ===== FINAL FIX 5: transition copy center + no squeezed text ===== */
+/* 修复：之前把 intro 的 textIn 动画套到了 history-transition-line 上，
+   导致 translate(-50%, -50%) 被覆盖，文字跑到右侧并挤在一起。 */
+.history-transition-line {
+  left: 50% !important;
+  top: 50% !important;
+  width: 100% !important;
+  text-align: center !important;
+  transform: translate(-50%, -50%) translateY(18px) !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  letter-spacing: -0.04em !important;
+  animation: none !important;
+}
+
+.history-transition-line .zh,
+.history-transition-line .en {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  transform: none !important;
+  animation: introColorMove 7s linear infinite !important;
+}
+
+.history-transition-panel.is-active .history-line-1 {
+  animation: historyLineOne 1.65s ease forwards !important;
+  animation-delay: 0.65s !important;
+}
+
+.history-transition-panel.is-active .history-line-2 {
+  animation: historyLineTwo 1.65s ease forwards !important;
+  animation-delay: 2.05s !important;
+}
+
+.history-transition-panel.is-active .history-line-3 {
+  animation: historyLineTwo 1.8s ease forwards !important;
+  animation-delay: 3.45s !important;
+}
+
+.history-transition-panel.is-active .history-line-4 {
+  animation: historyLineTwo 1.65s ease forwards !important;
+  animation-delay: 5.05s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-1 {
+  animation: historyLineOne 1.55s ease forwards !important;
+  animation-delay: 0.65s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-2 {
+  animation: historyLineTwo 1.55s ease forwards !important;
+  animation-delay: 2.05s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-3 {
+  animation: historyLineTwo 1.65s ease forwards !important;
+  animation-delay: 3.45s !important;
+}
+
+body.hair-archive-entering .history-transition-panel.is-active .history-line-4 {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+body.interview-entering .history-transition-panel.is-active .history-line-1 {
+  animation: historyLineOne 1.8s ease forwards !important;
+  animation-delay: 0.75s !important;
+}
+
+body.interview-entering .history-transition-panel.is-active .history-line-2 {
+  animation: historyLineTwo 1.8s ease forwards !important;
+  animation-delay: 2.45s !important;
+}
+
+body.interview-entering .history-transition-panel.is-active .history-line-3,
+body.interview-entering .history-transition-panel.is-active .history-line-4 {
+  animation: none !important;
+  opacity: 0 !important;
+}
+
+
+/* ===== FINAL PATCH: bilingual entry transition copy ===== */
+/* 三个部分进入页：英文在中文下方，和中文同字号/同字重/同彩色样式 */
+.history-transition-content {
+  height: 220px !important;
+}
+
+.history-transition-line .zh,
+.history-transition-line .en {
+  display: block !important;
+  width: 100% !important;
+  text-align: center !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: 1.12 !important;
+  letter-spacing: inherit !important;
+
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00 0%, #87EF00 18%, #00FFD5 36%, #2F6BFF 55%, #B23CFF 72%, #FF2A2A 88%, #FF8A00 100%) !important;
+  background-size: 240% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0.55px rgba(255,255,255,0.88) !important;
+  text-shadow:
+    1px 1px 0 rgba(16,16,16,0.55),
+    0 0 8px rgba(255,242,0,0.48),
+    0 0 16px rgba(0,255,213,0.28) !important;
+
+  transform: none !important;
+  animation: introColorMove 7s linear infinite !important;
+}
+
+.history-transition-line .en {
+  margin-top: 7px !important;
+}
+
+.history-transition-line.is-empty {
+  display: none !important;
+}
+
+</style>
+
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+
+<body class="entry-page">
+  <!-- 第一幕：红屏文字 -->
+  <section class="intro-screen" id="introScreen">
+  <div class="intro-text">
+    <div class="intro-block">
+      这是一份高饱和的视觉档案<br>
+      <span class="en">A high-saturation visual archive</span>
+    </div>
+
+    <div class="intro-block">
+      关于被看见<br>
+      <span class="en">On being seen</span>
+    </div>
+
+    <div class="intro-block">
+      关于被误解<br>
+      <span class="en">On being misunderstood</span>
+    </div>
+
+    <div class="intro-block">
+      关于柔软的抵抗<br>
+      <span class="en">and on soft resistance</span>
+    </div>
+  </div>
+</section>
+
+  <!-- 第二幕：SMART 按钮 -->
+  <section class="smart-screen" id="smartScreen">
+    <button class="smart-btn" id="smartBtn" type="button">
+      <img class="smart-entry-icon" src="icons/icon-smart.png" alt="">
+      <span class="smart-entry-label">SMART</span>
+    </button>
+  </section>
+
+  <!-- 第三幕：SMART 3D 首页 -->
+  <section class="image-screen" id="imageScreen">
+    <model-viewer
+      class="smart-model"
+      src="./models/smart.glb.glb"
+      alt="SMART 3D letter model"
+      auto-rotate
+      auto-rotate-delay="3000"
+      rotation-per-second="16deg"
+      interaction-prompt="none"
+      disable-zoom
+      environment-image="neutral"
+      shadow-intensity="0"
+      exposure="0.85"
+      camera-orbit="35deg 75deg 145%"
+      field-of-view="24deg"
+    ></model-viewer>
+
+    <div class="history-transition-panel" id="historyTransitionPanel" aria-hidden="true">
+      <div class="history-transition-content">
+        <div class="history-transition-line history-line-1">
+          <div class="zh">流水线上没有历史</div>
+          <div class="en">There is no history on the assembly line</div>
+        </div>
+
+        <div class="history-transition-line history-line-2">
+          <div class="zh">SMART才有</div>
+          <div class="en">Only SMART has one</div>
+        </div>
+
+        <div class="history-transition-line history-line-3">
+          <div class="zh">只有先被看见</div>
+          <div class="en">Only by first being seen</div>
+        </div>
+
+        <div class="history-transition-line history-line-4">
+          <div class="zh">才可能行动</div>
+          <div class="en">can action become possible</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="home-top-menu">
+  <a class="home-top-link history-link app-button" id="enterArchive" href="archive.html" data-text="来路 Traces">
+    <img class="app-icon" src="icons/icon-traces.png" alt="">
+    <span class="app-label">
+      <span class="cn" data-word="来路">来路</span>
+      <span class="en" data-word="Traces">Traces</span>
+    </span>
+  </a>
+
+  <a class="home-top-link list-link app-button" id="enterHairArchive" href="hair-archive.html" data-text="样子 Looks">
+    <img class="app-icon" src="icons/icon-looks.png" alt="">
+    <span class="app-label">
+      <span class="cn" data-word="样子">样子</span>
+      <span class="en" data-word="Looks">Looks</span>
+    </span>
+  </a>
+
+  <a class="home-top-link interview-link app-button" id="enterInterview" href="interview.html" data-text="声音 Voices">
+    <img class="app-icon" src="icons/icon-voices.png" alt="">
+    <span class="app-label">
+      <span class="cn" data-word="声音">声音</span>
+      <span class="en" data-word="Voices">Voices</span>
+    </span>
+  </a>
+</nav>
+
+    <aside class="list-panel" id="listPanel" aria-hidden="true">
+      <div class="list-panel-header">
+        <div class="list-panel-title">List</div>
+        <button class="list-close" id="listClose" type="button">Close</button>
+      </div>
+
+      <div class="list-items">
+        <a class="list-item" href="hair-archive.html">
+  <span class="list-item-title">Hair Archive</span>
+  <span class="list-item-time">01</span>
+  <span class="list-item-sub">Color classification</span>
+  <span class="list-item-arrow">▶</span>
+       </a>
+
+        <a class="list-item" href="#">
+          <span class="list-item-title">Item 02</span>
+          <span class="list-item-time">--:--</span>
+          <span class="list-item-sub">Coming soon</span>
+          <span class="list-item-arrow">▶</span>
+        </a>
+
+        <a class="list-item" href="#">
+          <span class="list-item-title">Item 03</span>
+          <span class="list-item-time">--:--</span>
+          <span class="list-item-sub">Coming soon</span>
+          <span class="list-item-arrow">▶</span>
+        </a>
+
+        <a class="list-item" href="#">
+          <span class="list-item-title">Item 04</span>
+          <span class="list-item-time">--:--</span>
+          <span class="list-item-sub">Coming soon</span>
+          <span class="list-item-arrow">▶</span>
+        </a>
+      </div>
+    </aside>
+  </section>
+
+  <script>
+    const introScreen = document.getElementById("introScreen");
+    const smartScreen = document.getElementById("smartScreen");
+    const imageScreen = document.getElementById("imageScreen");
+    const smartBtn = document.getElementById("smartBtn");
+    const enterArchive = document.getElementById("enterArchive");
+    const listLink = document.getElementById("listLink");
+    const listPanel = document.getElementById("listPanel");
+    const enterHairArchive = document.getElementById("enterHairArchive");
+    const enterInterview = document.getElementById("enterInterview");
+    const listClose = document.getElementById("listClose");
+    const historyTransitionPanel = document.getElementById("historyTransitionPanel");
+
+    function setTransitionLine(index, zhText, enText) {
+      const line = document.querySelector(`.history-line-${index}`);
+      const zh = document.querySelector(`.history-line-${index} .zh`);
+      const en = document.querySelector(`.history-line-${index} .en`);
+
+      if (zh) zh.textContent = zhText || "";
+      if (en) en.textContent = enText || "";
+
+      if (line) {
+        line.classList.toggle("is-empty", !zhText && !enText);
+      }
+    }
+
+    function resetArchiveTransitionCopy() {
+      setTransitionLine(1, "流水线上没有历史", "There is no history on the assembly line");
+      setTransitionLine(2, "SMART才有", "Only SMART has one");
+      setTransitionLine(3, "只有先被看见", "Only by first being seen");
+      setTransitionLine(4, "才可能行动", "can action become possible");
+    }
+
+    const INTRO_DURATION = 5700;
+
+    const params = new URLSearchParams(window.location.search);
+    const openModelDirectly = params.get("screen") === "model";
+
+    function showModelHomeDirectly() {
+  document.body.classList.add("home-ready");
+  document.body.classList.remove(
+    "history-entering",
+    "history-fading-to-black",
+    "list-open"
+  );
+
+  introScreen.classList.add("is-hidden");
+  smartScreen.classList.remove("is-visible");
+  smartScreen.classList.remove("is-sliding-down");
+
+  imageScreen.classList.add("is-visible");
+  imageScreen.classList.remove("is-entering-archive");
+
+  if (listPanel) {
+    listPanel.classList.remove("is-open");
+    listPanel.setAttribute("aria-hidden", "true");
+  }
+
+  if (historyTransitionPanel) {
+    historyTransitionPanel.classList.remove("is-active");
+    historyTransitionPanel.classList.remove("is-fading");
+    historyTransitionPanel.setAttribute("aria-hidden", "true");
+  }
+}
+
+    if (openModelDirectly) {
+  showModelHomeDirectly();
+} else {
+  setTimeout(() => {
+    // 先让 SMART 红屏在下面准备好，避免 intro 离场时露出 3D
+    smartScreen.classList.add("is-visible");
+
+    // 再让文字整体往上离开
+    requestAnimationFrame(() => {
+      introScreen.classList.add("is-leaving");
+    });
+
+    // 文字离场结束后，只隐藏 intro，不再临时显示 SMART
+    setTimeout(() => {
+      introScreen.classList.add("is-hidden");
+    }, 820);
+  }, INTRO_DURATION);
+}
+
+    smartBtn.addEventListener("click", () => {
+  const smartModel = document.querySelector(".smart-model");
+
+  // 滑动期间先暂停自动旋转，减少卡顿；模型仍然可见
+  if (smartModel) {
+    smartModel.removeAttribute("auto-rotate");
+  }
+
+  requestAnimationFrame(() => {
+    smartScreen.classList.add("is-sliding-down");
+  });
+
+  let finished = false;
+
+  function finishSmartSlide() {
+  if (finished) return;
+  finished = true;
+
+  // 红色屏幕已经滑到屏幕下方了，不要立刻移除 is-sliding-down
+  // 否则它会瞬间回到原位，造成闪一下
+  smartScreen.classList.remove("is-visible");
+
+  // 红色滑完后，再显示 History / List
+  document.body.classList.add("home-ready");
+
+  // 再恢复自动旋转
+  if (smartModel) {
+    smartModel.setAttribute("auto-rotate", "");
+  }
+}
+
+  smartScreen.addEventListener("transitionend", (event) => {
+    if (event.propertyName === "transform") {
+      finishSmartSlide();
+    }
+  }, { once: true });
+
+  setTimeout(finishSmartSlide, 1100);
+});
+enterArchive.addEventListener("click", (event) => {
+  event.preventDefault();
+
+  if (listPanel && listPanel.classList.contains("is-open")) {
+    closeListPanel();
+  }
+
+  // 恢复之前的纯色 archive 过渡，不再使用彩色视频 loading
+  document.body.classList.remove(
+    "home-ready",
+    "history-fading-to-black",
+    "hair-archive-entering",
+    "interview-entering"
+  );
+  document.body.classList.add("history-entering");
+
+  resetArchiveTransitionCopy();
+
+  if (historyTransitionPanel) {
+    historyTransitionPanel.classList.remove("is-fading");
+    historyTransitionPanel.classList.add("is-active");
+    historyTransitionPanel.setAttribute("aria-hidden", "false");
+  }
+
+  setTimeout(() => {
+    document.body.classList.add("history-fading-to-black");
+
+    if (historyTransitionPanel) {
+      historyTransitionPanel.classList.add("is-fading");
+    }
+  }, 7000);
+
+  setTimeout(() => {
+    window.location.href = "archive.html";
+  }, 8600);
+});
+
+
+
+if (enterHairArchive) {
+  enterHairArchive.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (listPanel && listPanel.classList.contains("is-open")) {
+      closeListPanel();
+    }
+
+    document.body.classList.remove(
+      "home-ready",
+      "history-fading-to-black",
+      "interview-entering"
+    );
+    document.body.classList.add("history-entering");
+    document.body.classList.add("hair-archive-entering");
+
+    setTransitionLine(1, "好想我的头发像孔雀一样", "I wish my hair could be like a peacock");
+    setTransitionLine(2, "带我飞翔", "carrying me to fly");
+    setTransitionLine(3, "飞过工厂的高墙", "over the factory walls");
+    setTransitionLine(4, "", "");
+
+    if (historyTransitionPanel) {
+      historyTransitionPanel.classList.remove("is-fading");
+      historyTransitionPanel.classList.add("is-active");
+      historyTransitionPanel.setAttribute("aria-hidden", "false");
+    }
+
+    setTimeout(() => {
+      document.body.classList.add("history-fading-to-black");
+
+      if (historyTransitionPanel) {
+        historyTransitionPanel.classList.add("is-fading");
+      }
+    }, 5600);
+
+    setTimeout(() => {
+      window.location.href = "hair-archive.html";
+    }, 7000);
+  });
+}
+
+
+
+if (enterInterview) {
+  enterInterview.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (listPanel && listPanel.classList.contains("is-open")) {
+      closeListPanel();
+    }
+
+    document.body.classList.remove(
+      "home-ready",
+      "history-fading-to-black",
+      "hair-archive-entering"
+    );
+    document.body.classList.add("history-entering");
+    document.body.classList.add("interview-entering");
+
+    setTransitionLine(1, "他们先被看见", "They were seen first");
+    setTransitionLine(2, "却很晚才被听见", "but heard much later");
+    setTransitionLine(3, "", "");
+    setTransitionLine(4, "", "");
+
+    if (historyTransitionPanel) {
+      historyTransitionPanel.classList.remove("is-fading");
+      historyTransitionPanel.classList.add("is-active");
+      historyTransitionPanel.setAttribute("aria-hidden", "false");
+    }
+
+    setTimeout(() => {
+      document.body.classList.add("history-fading-to-black");
+
+      if (historyTransitionPanel) {
+        historyTransitionPanel.classList.add("is-fading");
+      }
+    }, 4200);
+
+    setTimeout(() => {
+      window.location.href = "interview.html";
+    }, 5600);
+  });
+}
+
+  
+    function openListPanel() {
+      document.body.classList.add("list-open");
+      listPanel.classList.add("is-open");
+      listPanel.setAttribute("aria-hidden", "false");
+    }
+
+    function closeListPanel() {
+      document.body.classList.remove("list-open");
+      listPanel.classList.remove("is-open");
+      listPanel.setAttribute("aria-hidden", "true");
+    }
+
+    if (listLink && listPanel) {
+      listLink.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        if (listPanel.classList.contains("is-open")) {
+          closeListPanel();
+        } else {
+          openListPanel();
+        }
+      });
+    }
+
+    if (listClose && listPanel) {
+      listClose.addEventListener("click", closeListPanel);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,3281 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMART · Hair Archive</title>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --hair-bg: #FBFF00;
+      --hair-blue: #6283CE;
+      --hair-panel-width: 280px;
+      --hair-tab-width: 104px;
+      --hair-top-height: 90px;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      overflow: hidden;
+      background: var(--hair-bg);
+      color: var(--hair-blue);
+      font-family: Arial, "Helvetica Neue", sans-serif;
+    }
+
+    .hair-page {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      background: var(--hair-bg);
+      border: 2px solid var(--hair-blue);
+      outline: 3px dotted var(--hair-blue);
+      outline-offset: -10px;
+    }
+
+    .hair-header {
+      position: fixed;
+      left: 24px;
+      top: 22px;
+      right: 24px;
+      z-index: 300;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 28px;
+      align-items: start;
+      pointer-events: none;
+    }
+
+    .hair-title {
+      color: var(--hair-blue);
+      font-size: 18px;
+      font-weight: 800;
+      line-height: 1.18;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    .hair-close,
+    .directory-toggle {
+      pointer-events: auto;
+      font-family: inherit;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    /* 默认只显示 LIST，不显示 X ESC */
+    .hair-close {
+      display: none;
+    }
+
+    .directory-toggle {
+      position: fixed;
+      top: 0;
+      right: 0;
+      z-index: 260;
+      width: var(--hair-tab-width);
+      height: var(--hair-top-height);
+      padding: 0;
+      border: 2px solid var(--hair-blue);
+      border-top: 0;
+      border-right: 0;
+      background: var(--hair-blue);
+      color: var(--hair-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      transition: right 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+   .directory-toggle:hover {
+  background: var(--hair-blue);
+  color: var(--hair-bg);
+}
+
+    body.hair-list-open .directory-toggle {
+      right: var(--hair-panel-width);
+    }
+
+    body.hair-list-open .hair-close {
+      position: fixed;
+      top: 0;
+      right: 28px;
+      z-index: 320;
+      height: var(--hair-top-height);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 0;
+      background: transparent;
+      color: var(--hair-bg);
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      pointer-events: auto;
+    }
+
+    /* 右侧颜色列表：蓝底黄字，从右侧滑出 */
+    .color-nav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: auto;
+  z-index: 180;
+  width: var(--hair-panel-width);
+  height: 100vh;
+  overflow-y: auto;
+  padding: 126px 28px 32px 28px;
+
+  background: var(--hair-blue);
+
+  color: var(--hair-bg);
+  border: 0;
+  border-left: 2px solid var(--hair-blue);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: none;
+  transform: translateX(100%);
+  transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+    .color-nav.is-open {
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .color-nav::before {
+      content: "COLOR LIST";
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      top: 0;
+      height: var(--hair-top-height);
+      display: flex;
+      align-items: center;
+      border-bottom: 2px solid var(--hair-bg);
+      color: var(--hair-bg);
+      font-size: 18px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .color-button {
+      width: 100%;
+      margin-bottom: 22px;
+      border: 0;
+      background: transparent;
+      color: var(--hair-bg);
+      display: grid;
+      grid-template-columns: 12px 1fr;
+      column-gap: 14px;
+      align-items: center;
+      text-align: left;
+      cursor: pointer;
+      opacity: 0.48;
+      font-family: inherit;
+    }
+
+    .color-button:hover,
+    .color-button.is-active {
+      opacity: 1;
+    }
+
+    .color-button::before {
+      content: none;
+    }
+
+    .color-mark {
+      width: 8px;
+      height: 8px;
+      display: block;
+      border: 1.3px solid currentColor;
+    }
+
+    .color-button.is-active .color-mark {
+      background: currentColor;
+    }
+
+    .color-text {
+      display: flex;
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.38em;
+      white-space: nowrap;
+    }
+
+    .color-zh,
+    .color-en {
+      display: inline;
+      margin: 0;
+      color: var(--hair-bg);
+      font-size: 16px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    /* 图片档案区域 */
+    .hair-scroll {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow-y: auto;
+  padding: 210px 10vw 240px 10vw;
+  scrollbar-width: thin;
+  background: var(--hair-bg);
+}
+
+    .hair-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(80px, 150px));
+      justify-content: space-between;
+      align-items: start;
+      column-gap: 7vw;
+      row-gap: 170px;
+    }
+
+    .hair-card {
+      position: relative;
+      width: auto;
+      justify-self: center;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: cardIn 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes cardIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hair-card:nth-child(6n + 1) { margin-top: 80px; }
+    .hair-card:nth-child(6n + 2) { margin-top: 0; }
+    .hair-card:nth-child(6n + 3) { margin-top: 130px; }
+    .hair-card:nth-child(6n + 4) { margin-top: 50px; }
+    .hair-card:nth-child(6n + 5) { margin-top: 180px; }
+    .hair-card:nth-child(6n + 6) { margin-top: 20px; }
+
+    .hair-card:nth-child(5n + 1) .hair-thumb-wrap { width: 94px; }
+    .hair-card:nth-child(5n + 2) .hair-thumb-wrap { width: 136px; }
+    .hair-card:nth-child(5n + 3) .hair-thumb-wrap { width: 110px; }
+    .hair-card:nth-child(5n + 4) .hair-thumb-wrap { width: 156px; }
+    .hair-card:nth-child(5n + 5) .hair-thumb-wrap { width: 122px; }
+
+    .hair-thumb-wrap {
+      width: 118px;
+      height: auto;
+      aspect-ratio: auto;
+      background: transparent;
+      overflow: hidden;
+      position: relative;
+      border: 0;
+    }
+
+    .hair-thumb {
+      width: 100%;
+      height: auto;
+      object-fit: contain;
+      display: block;
+      filter: grayscale(1) contrast(0.9) brightness(0.85);
+      transform: scale(1.02);
+      transition: filter 0.48s ease, transform 0.58s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .hair-mosaic-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      opacity: 0.78;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      transition: opacity 0.55s ease, filter 0.55s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: scale(1.01);
+    }
+
+    .hair-card:hover .hair-mosaic-layer {
+      opacity: 0;
+      filter: blur(2px);
+      transform: scale(1.035);
+    }
+
+    .hair-card:hover .hair-thumb {
+      filter: grayscale(0) contrast(1);
+      transform: scale(1.04);
+    }
+
+    .hair-meta {
+      position: absolute;
+      left: -36px;
+      bottom: -4px;
+      display: block;
+      color: var(--hair-blue);
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: 0.02em;
+      pointer-events: none;
+    }
+
+    .empty-state {
+      max-width: 560px;
+      padding-top: 120px;
+      color: var(--hair-blue);
+      font-size: 16px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+
+
+    .hair-all-intro {
+      position: absolute;
+      left: 112px;
+      top: 270px;
+      width: 430px;
+      min-height: 493px;
+      z-index: 15;
+      color: transparent;
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.48;
+      letter-spacing: -0.02em;
+      white-space: normal;
+      pointer-events: none;
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
+      text-wrap: pretty;
+      background: linear-gradient(90deg, #FF2A2A 0%, #FF8A00 16%, #FBFF00 32%, #87EF00 48%, #00FFD5 64%, #2F6BFF 80%, #B23CFF 100%);
+      background-size: 220% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      -webkit-text-stroke: 1px #FFFFFF;
+      paint-order: stroke fill;
+      text-shadow:
+        1px 0 0 rgba(255,255,255,0.95),
+        -1px 0 0 rgba(255,255,255,0.95),
+        0 1px 0 rgba(255,255,255,0.95),
+        0 -1px 0 rgba(255,255,255,0.95),
+        0 0 8px rgba(0, 0, 0, 0.18);
+    }
+
+    .hair-all-intro.is-hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .hair-all-intro p {
+      margin: 0 0 22px 0;
+    }
+
+    .hair-all-intro p:last-child {
+      margin-bottom: 0;
+    }
+    /* 图片查看器 */
+    .viewer {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: var(--hair-bg);
+      color: var(--hair-blue);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.32s ease, visibility 0.32s ease;
+    }
+
+    .viewer.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .viewer-frame {
+      position: absolute;
+      inset: 12px;
+      border: 2px solid var(--hair-blue);
+      outline: 3px dotted var(--hair-blue);
+      outline-offset: 4px;
+      overflow: hidden;
+    }
+
+    .viewer-info {
+      position: absolute;
+      left: 20px;
+      top: 18px;
+      z-index: 2;
+      color: var(--hair-blue);
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 800;
+      text-transform: uppercase;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.38s ease 0.18s, transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.18s;
+    }
+
+    .viewer.is-open .viewer-info {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .viewer-close {
+      position: absolute;
+      right: 18px;
+      top: 16px;
+      z-index: 3;
+      height: 36px;
+      padding: 0 16px;
+      border: 2px solid var(--hair-blue);
+      background: var(--hair-bg);
+      color: var(--hair-blue);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .viewer-close:hover {
+      background: var(--hair-blue);
+      color: var(--hair-bg);
+    }
+
+    .viewer-image {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      max-width: 62vw;
+      max-height: 80vh;
+      object-fit: contain;
+      opacity: 0;
+      filter: blur(16px);
+      transform: translate(-50%, -48%) scale(1.02);
+      transition: opacity 0.5s ease, filter 0.62s ease, transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .viewer.is-open .viewer-image.is-loaded {
+      opacity: 1;
+      filter: blur(0);
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .viewer-index {
+      position: absolute;
+      right: 30px;
+      bottom: 92px;
+      color: var(--hair-blue);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .viewer-pager {
+      position: absolute;
+      left: 20px;
+      top: 92px;
+      display: flex;
+      gap: 20px;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .viewer-pager button {
+      border: 0;
+      background: transparent;
+      color: var(--hair-blue);
+      font: inherit;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      :root {
+        --hair-panel-width: 260px;
+      }
+
+      .hair-scroll {
+        top: 180px;
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .hair-grid {
+        grid-template-columns: repeat(2, minmax(120px, 1fr));
+        gap: 80px 18px;
+      }
+
+      .viewer-image {
+        max-width: 84vw;
+        max-height: 68vh;
+      }
+    }
+
+    /* ===== FINAL CLEAN HAIR ARCHIVE STYLE ===== */
+
+    .hair-title,
+    .directory-toggle,
+    .hair-close,
+    .color-nav::before,
+    .color-button,
+    .color-zh,
+    .color-en {
+      font-family: Arial, "Helvetica Neue", sans-serif !important;
+      font-weight: 900 !important;
+      letter-spacing: -0.05em !important;
+      -webkit-text-stroke: 0.7px #101010 !important;
+      text-shadow:
+        1px 1px 0 #101010,
+        2px 2px 0 #101010,
+        3px 3px 0 #101010,
+        0 -1px 0 rgba(255, 255, 255, 0.85),
+        0 0 7px rgba(255, 242, 0, 0.55) !important;
+    }
+
+    .hair-title,
+    .hair-meta,
+    .empty-state,
+    .viewer-info,
+    .viewer-close,
+    .viewer-index,
+    .viewer-pager button {
+      color: var(--hair-blue) !important;
+    }
+
+    .directory-toggle,
+    .hair-close,
+    .color-nav::before,
+    .color-button,
+    .color-zh,
+    .color-en {
+      color: var(--hair-bg) !important;
+    }
+
+    .hair-title {
+      font-size: 20px !important;
+      line-height: 1.08 !important;
+    }
+
+    .color-nav::before,
+    .hair-close,
+    .directory-toggle {
+      font-size: 18px !important;
+    }
+
+    .color-zh,
+    .color-en {
+      font-size: 16px !important;
+    }
+
+    .hair-meta {
+      font-size: 12px !important;
+      font-weight: 400 !important;
+      letter-spacing: 0.02em !important;
+      -webkit-text-stroke: 0 !important;
+      text-shadow: none !important;
+    }
+
+    /* ===== CORRECT: LIST + COLOR LIST 是一个窄抽屉，不是整屏 ===== */
+
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: calc(var(--hair-tab-width) + var(--hair-panel-width));
+      height: 100vh;
+      z-index: 260;
+      overflow: hidden;
+      pointer-events: none;
+
+      /* 这一整块共用同一张背景 */
+      background-image: url("./panel-bg.png");
+background-size: auto 120vh;
+background-position: 85% center;
+background-repeat: no-repeat;
+
+      /* 关闭时只露出 LIST 标签；打开时整块一起滑出 */
+      transform: translateX(var(--hair-panel-width));
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    body.hair-list-open .drawer-panel {
+      transform: translateX(0);
+    }
+
+    .directory-toggle {
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: auto !important;
+      z-index: 3 !important;
+      width: var(--hair-tab-width) !important;
+      height: var(--hair-top-height) !important;
+      padding: 0 !important;
+      border: 2px solid var(--hair-blue) !important;
+      border-top: 0 !important;
+      border-left: 0 !important;
+      background: transparent !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      pointer-events: auto !important;
+      box-shadow:
+        3px 3px 0 #101010,
+        0 -1px 0 rgba(255, 255, 255, 0.85) inset !important;
+      transform: none !important;
+      transition: none !important;
+    }
+
+    .directory-toggle:hover {
+      background: transparent !important;
+      transform: none !important;
+      box-shadow:
+        3px 3px 0 #101010,
+        0 -1px 0 rgba(255, 255, 255, 0.85) inset !important;
+    }
+
+    .color-nav {
+      position: absolute !important;
+      top: 0 !important;
+      left: var(--hair-tab-width) !important;
+      right: auto !important;
+      z-index: 2 !important;
+      width: var(--hair-panel-width) !important;
+      height: 100vh !important;
+      overflow-y: auto !important;
+      padding: 126px 28px 32px 28px !important;
+      background: transparent !important;
+      border: 0 !important;
+      border-left: 2px solid var(--hair-blue) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: none !important;
+      pointer-events: auto !important;
+    }
+
+    .hair-close {
+      position: absolute !important;
+      top: 0 !important;
+      right: 28px !important;
+      z-index: 4 !important;
+      height: var(--hair-top-height) !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border: 0 !important;
+      background: transparent !important;
+      pointer-events: auto !important;
+      text-decoration: none !important;
+    }
+
+    body:not(.hair-list-open) .hair-close {
+      display: none !important;
+    }
+
+
+
+  
+    /* ===== FINAL: top-left rotating SMART 3D logo ===== */
+
+    .hair-logo {
+      width: 300px !important;
+      height: 170px !important;
+      margin-top: -34px !important;
+      margin-left: -42px !important;
+      pointer-events: none !important;
+      position: relative !important;
+      z-index: 310 !important;
+    }
+
+    .hair-logo-model {
+      width: 100% !important;
+      height: 100% !important;
+      display: block !important;
+      background: transparent !important;
+      --poster-color: transparent;
+    }
+
+    /* 让左上角只显示 3D SMART，不再占用文字标题样式 */
+    .hair-title {
+      display: none !important;
+    }
+
+    /* ===== PATCH: hover motion like index menu ===== */
+
+/* LIST / ESC / COLOR LIST / 颜色按钮 都加同一种“扫过弹起”的动效 */
+.directory-toggle,
+.hair-close,
+.color-button,
+.viewer-close,
+.viewer-pager button {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 0.25s ease,
+    color 0.25s ease,
+    background-color 0.25s ease,
+    opacity 0.25s ease !important;
+
+  will-change: transform !important;
+}
+
+/* LIST 按钮：之前被 transform:none 锁死了，这里重新打开 */
+.directory-toggle:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  background: transparent !important;
+  color: var(--hair-bg) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 242, 0, 0.95),
+    0 0 18px rgba(98, 131, 206, 0.75) !important;
+}
+
+/* ESC 按钮 */
+.hair-close:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  color: var(--hair-bg) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 242, 0, 0.95),
+    0 0 18px rgba(98, 131, 206, 0.75) !important;
+}
+
+/* COLOR LIST 里的每个颜色项 */
+.color-button:hover {
+  opacity: 1 !important;
+  transform: translateX(6px) scale(1.04) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 242, 0, 0.95),
+    0 0 18px rgba(98, 131, 206, 0.75) !important;
+}
+
+/* 色块也跟着微微放大 */
+.color-button:hover .color-mark {
+  transform: scale(1.35) !important;
+  background: currentColor !important;
+}
+
+.color-mark {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s ease !important;
+}
+
+/* 查看器里的 close / 翻页按钮也统一 */
+.viewer-close:hover,
+.viewer-pager button:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+}
+/* ===== FINAL: remove image focus frame / black outline ===== */
+
+.hair-card,
+.hair-card:focus,
+.hair-card:focus-visible,
+.hair-card:active {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+.hair-thumb-wrap,
+.hair-thumb,
+.hair-mosaic-layer {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* 去掉部分浏览器给 button 自动加的内边框 */
+.hair-card::-moz-focus-inner {
+  border: 0 !important;
+}
+/* ===== FINAL: remove all blue / black frames around hair images ===== */
+
+/* 去掉整个页面外框 */
+.hair-page {
+  border: 0 !important;
+  outline: none !important;
+}
+
+/* 去掉点开大图后的查看器外框 */
+.viewer-frame {
+  border: 0 !important;
+  outline: none !important;
+}
+
+/* 去掉图片、图片容器、马赛克层可能出现的边框 */
+.hair-card,
+.hair-card *,
+.hair-thumb-wrap,
+.hair-thumb,
+.hair-mosaic-layer,
+.viewer-image {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 去掉按钮点击后的所有默认框 */
+button,
+button *,
+button:focus,
+button:focus-visible,
+button:active {
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* ===== FINAL: remove blue vertical line beside LIST ===== */
+
+/* 去掉 LIST 按钮右侧蓝线 */
+.directory-toggle {
+  border-right: 0 !important;
+  border-left: 0 !important;
+  border-bottom: 0 !important;
+  box-shadow: none !important;
+}
+
+/* 去掉 COLOR LIST 左侧蓝线 */
+.color-nav {
+  border-left: 0 !important;
+  border-right: 0 !important;
+}
+
+/* 去掉抽屉整体可能残留的线 */
+.drawer-panel {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* ===== FINAL: remove LIST box + make yellow line longer centered ===== */
+
+/* 1. 彻底取消 LIST 外面的黑框/蓝框 */
+.directory-toggle,
+.directory-toggle:hover,
+.directory-toggle:focus,
+.directory-toggle:active,
+.directory-toggle:focus-visible {
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+}
+
+/* 防止 LIST 自己生成伪元素边框 */
+.directory-toggle::before,
+.directory-toggle::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 2. 先取消原来 COLOR LIST 自带的短黄线 */
+.color-nav::before {
+  border-bottom: 0 !important;
+}
+
+/* 3. 重新画一条更长、居中的黄线 */
+.drawer-panel::after {
+  content: "" !important;
+  position: absolute !important;
+
+  top: var(--hair-top-height) !important;
+  left: calc(var(--hair-tab-width) + 8px) !important;
+  right: 8px !important;
+
+  height: 2px !important;
+  background: var(--hair-bg) !important;
+
+  z-index: 5 !important;
+  pointer-events: none !important;
+}
+/* ===== FINAL: remove COLOR LIST title and yellow line ===== */
+
+/* 删除 COLOR LIST 这个标题 */
+.color-nav::before {
+  display: none !important;
+  content: none !important;
+  border-bottom: 0 !important;
+}
+
+/* 删除后来重新画出来的黄色横线 */
+.drawer-panel::after {
+  display: none !important;
+  content: none !important;
+}
+
+/* 因为标题删了，颜色列表整体往上移一点 */
+.color-nav {
+  padding-top: 110px !important;
+}
+/* ===== FINAL: rename LIST to Looks and align color list under it ===== */
+
+/* 样子 Looks 这个按钮 */
+.directory-toggle {
+  width: 150px !important;
+  height: var(--hair-top-height) !important;
+
+  left: 18px !important;
+  top: 0 !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+
+  padding-left: 0 !important;
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* 样子 / Looks 字体 */
+.looks-zh,
+.looks-en {
+  display: inline-block !important;
+  color: var(--hair-bg) !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.05em !important;
+
+  -webkit-text-stroke: 0.7px #101010 !important;
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 0.85),
+    0 0 7px rgba(255, 242, 0, 0.55) !important;
+}
+
+/* 颜色列表不再从 COLOR LIST 那边开始，而是放到 样子 Looks 正下方 */
+.color-nav {
+  left: 18px !important;
+  top: 86px !important;
+
+  width: 260px !important;
+  padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* 每一行颜色分类和 样子 Looks 左边对齐 */
+.color-button {
+  padding-left: 0 !important;
+  margin-left: 0 !important;
+  grid-template-columns: 12px auto !important;
+  column-gap: 14px !important;
+}
+
+/* 颜色文字不要再被挤到右边 */
+.color-text {
+  justify-content: flex-start !important;
+}
+/* ===== FINAL: restore LIST layout ===== */
+
+.directory-toggle {
+  width: var(--hair-tab-width) !important;
+  height: var(--hair-top-height) !important;
+
+  left: 0 !important;
+  top: 0 !important;
+
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 0 !important;
+  gap: 0 !important;
+
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+/* 颜色列表恢复到原来的抽屉内容位置 */
+.color-nav {
+  left: var(--hair-tab-width) !important;
+  top: 0 !important;
+
+  width: var(--hair-panel-width) !important;
+  height: 100vh !important;
+
+  padding-top: 110px !important;
+  padding-left: 28px !important;
+  padding-right: 28px !important;
+  padding-bottom: 32px !important;
+
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* 颜色列表文字恢复原来的缩进 */
+.color-button {
+  width: 100% !important;
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+
+  display: grid !important;
+  grid-template-columns: 12px 1fr !important;
+  column-gap: 14px !important;
+}
+/* ===== FINAL: hair archive UI icons before text ===== */
+
+/* LIST / X ESC / 查看器按钮：图标在左，文字在右 */
+.hair-icon-button {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+  white-space: nowrap !important;
+}
+
+/* Hair Archive 所有交互图标 */
+.hair-ui-icon {
+  width: 24px !important;
+  height: 24px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  transform: translateY(-1px) !important;
+
+  filter:
+    drop-shadow(1px 1px 0 #101010)
+    drop-shadow(0 0 5px rgba(255, 242, 0, 0.45)) !important;
+
+  pointer-events: none !important;
+}
+
+/* LIST 按钮里文字和图标保持一行 */
+.directory-toggle span,
+.hair-close span,
+.viewer-close span,
+.viewer-pager button span {
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+
+/* 颜色列表按钮：图标 + 小方块 + 文字 */
+.color-button {
+  display: grid !important;
+  grid-template-columns: 24px 12px 1fr !important;
+  column-gap: 10px !important;
+  align-items: center !important;
+}
+
+/* 颜色列表里的图标稍微小一点 */
+.color-ui-icon {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+/* 鼠标扫过时，图标也一起弹起来 */
+.hair-icon-button:hover .hair-ui-icon,
+.color-button:hover .hair-ui-icon {
+  transform: translateY(-3px) scale(1.05) !important;
+
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.85))
+    drop-shadow(0 0 14px rgba(98, 131, 206, 0.65)) !important;
+}
+/* ===== FINAL: hair color filter text colors ===== */
+
+/* 全部 ALL：灰色 */
+.color-button[data-color="all"],
+.color-button[data-color="all"] .color-zh,
+.color-button[data-color="all"] .color-en,
+.color-button[data-color="all"] .color-mark {
+  color: #B8B8B8 !important;
+}
+
+/* 红色 RED */
+.color-button[data-color="red"],
+.color-button[data-color="red"] .color-zh,
+.color-button[data-color="red"] .color-en,
+.color-button[data-color="red"] .color-mark {
+  color: #FF2A2A !important;
+}
+
+/* 橙色 ORANGE */
+.color-button[data-color="orange"],
+.color-button[data-color="orange"] .color-zh,
+.color-button[data-color="orange"] .color-en,
+.color-button[data-color="orange"] .color-mark {
+  color: #FF8A00 !important;
+}
+
+/* 黄色 YELLOW */
+.color-button[data-color="yellow"],
+.color-button[data-color="yellow"] .color-zh,
+.color-button[data-color="yellow"] .color-en,
+.color-button[data-color="yellow"] .color-mark {
+  color: #FFE600 !important;
+}
+
+/* 绿色 GREEN */
+.color-button[data-color="green"],
+.color-button[data-color="green"] .color-zh,
+.color-button[data-color="green"] .color-en,
+.color-button[data-color="green"] .color-mark {
+  color: #87EF00 !important;
+}
+
+/* 青色 CYAN */
+.color-button[data-color="cyan"],
+.color-button[data-color="cyan"] .color-zh,
+.color-button[data-color="cyan"] .color-en,
+.color-button[data-color="cyan"] .color-mark {
+  color: #00FFD5 !important;
+}
+
+/* 蓝色 BLUE */
+.color-button[data-color="blue"],
+.color-button[data-color="blue"] .color-zh,
+.color-button[data-color="blue"] .color-en,
+.color-button[data-color="blue"] .color-mark {
+  color: #2F6BFF !important;
+}
+
+/* 紫色 PURPLE */
+.color-button[data-color="purple"],
+.color-button[data-color="purple"] .color-zh,
+.color-button[data-color="purple"] .color-en,
+.color-button[data-color="purple"] .color-mark {
+  color: #B23CFF !important;
+}
+
+/* 让彩色文字不要被前面的黄色强制覆盖 */
+.color-button .color-zh,
+.color-button .color-en {
+  -webkit-text-fill-color: currentColor !important;
+}
+
+/* 当前选中项的小方块填充对应颜色 */
+.color-button.is-active .color-mark {
+  background: currentColor !important;
+}
+/* ===== FINAL: add spacing for 列表 LIST button ===== */
+
+/* LIST 标签变宽一点，不然“图标 + 列表 LIST”太挤 */
+:root {
+  --hair-tab-width: 148px !important;
+}
+
+/* 列表 LIST 按钮内部加左边距 */
+.directory-toggle {
+  width: var(--hair-tab-width) !important;
+
+  justify-content: flex-start !important;
+  padding-left: 18px !important;
+  padding-right: 14px !important;
+
+  gap: 12px !important;
+}
+
+/* 防止“列表 LIST”换行 */
+.directory-toggle span {
+  white-space: nowrap !important;
+}
+
+/* LIST 图标稍微固定一下大小 */
+.directory-toggle .hair-ui-icon {
+  width: 24px !important;
+  height: 24px !important;
+  flex-shrink: 0 !important;
+}
+/* ===== FINAL: remove color icons and align color list with 列表 LIST ===== */
+
+/* 颜色列表不要再给图标留位置 */
+.color-button {
+  display: grid !important;
+  grid-template-columns: 12px auto !important;
+  column-gap: 14px !important;
+  align-items: center !important;
+}
+
+/* 颜色列表整体从抽屉左边开始，不要被 LIST 宽度往右推 */
+.color-nav {
+  left: 0 !important;
+  top: 96px !important;
+
+  width: 100% !important;
+  height: calc(100vh - 96px) !important;
+
+  padding-top: 0 !important;
+  padding-left: 58px !important;
+  padding-right: 28px !important;
+  padding-bottom: 32px !important;
+}
+
+/* LIST 按钮也用同一个左边距，保证上下对齐 */
+.directory-toggle {
+  padding-left: 58px !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+}
+
+/* LIST 文字不要换行 */
+.directory-toggle span {
+  white-space: nowrap !important;
+}
+
+
+/* ===== FINAL: crop cover thumbnails into upper-body squares ===== */
+/* 只影响外面的封面缩略图；点开后的本人照片 viewer 不会被裁切 */
+.hair-thumb-wrap {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  overflow: hidden !important;
+}
+
+.hair-thumb {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+}
+
+.hair-card:hover .hair-thumb {
+  transform: scale(1.06) !important;
+}
+
+
+
+/* ===== FINAL FIX: colorful upper-body square covers, no grayscale mosaic ===== */
+/* 只影响外面的封面缩略图；点开后的 viewer 仍然显示完整本人照片 */
+.hair-thumb-wrap {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.hair-thumb {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+
+  filter: none !important;
+  -webkit-filter: none !important;
+  transform: scale(1) !important;
+  opacity: 1 !important;
+}
+
+/* 取消那层黑白马赛克；之前初始看到腿部，是这层 canvas 用中心裁切盖在上面 */
+.hair-mosaic-layer {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.hair-card:hover .hair-mosaic-layer {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.hair-card:hover .hair-thumb {
+  filter: none !important;
+  -webkit-filter: none !important;
+  object-position: center top !important;
+  transform: scale(1.04) !important;
+}
+
+  
+
+/* ===== FINAL FIX: light mosaic cover + hover reveal real photo ===== */
+/* 默认：网络头像封面 + 轻马赛克；hover：马赛克消失，露出背后的本人照片 */
+.hair-thumb-wrap {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  overflow: hidden !important;
+  position: relative !important;
+  background: transparent !important;
+}
+
+.hair-thumb {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+
+  -webkit-filter: none !important;
+  filter: none !important;
+
+  transition:
+    opacity 0.42s ease,
+    transform 0.58s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.42s ease !important;
+}
+
+/* 背后的本人照片：默认藏起来 */
+.hair-thumb-real {
+  z-index: 0 !important;
+  opacity: 0 !important;
+  transform: scale(1.02) !important;
+}
+
+/* 外层网络头像封面：默认完整显色，不再用透明度压淡，避免和黄色背景融在一起 */
+.hair-thumb-cover {
+  z-index: 1 !important;
+  opacity: 1 !important;
+  transform: scale(1.01) !important;
+  -webkit-filter: saturate(1.08) contrast(1.06) !important;
+  filter: saturate(1.08) contrast(1.06) !important;
+}
+
+/* 轻马赛克层：保留，但不再黑白、不再太重 */
+.hair-mosaic-layer {
+  display: block !important;
+  visibility: visible !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 2 !important;
+  width: 100% !important;
+  height: 100% !important;
+
+  opacity: 0.58 !important;
+  pointer-events: none !important;
+  image-rendering: pixelated !important;
+  image-rendering: crisp-edges !important;
+
+  -webkit-filter: none !important;
+  filter: none !important;
+  transform: scale(1.01) !important;
+
+  transition:
+    opacity 0.42s ease,
+    transform 0.58s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* hover：封面和马赛克淡出，本人照片显现 */
+.hair-card:hover .hair-thumb-cover {
+  opacity: 0 !important;
+  transform: scale(1.04) !important;
+}
+
+.hair-card:hover .hair-thumb-real {
+  opacity: 1 !important;
+  transform: scale(1.04) !important;
+}
+
+.hair-card:hover .hair-mosaic-layer {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 0 !important;
+  transform: scale(1.04) !important;
+}
+
+  
+
+/* ===== FINAL PATCH: interactive button-like hover motion for hair cards ===== */
+/* 让图片像可点击按钮一样：鼠标移上去时轻轻弹起、发光、再落到稳定状态 */
+.hair-card {
+  overflow: visible !important;
+  transform-origin: center center !important;
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.28s ease !important;
+  will-change: transform, filter !important;
+}
+
+.hair-thumb-wrap {
+  transform-origin: center center !important;
+  transition:
+    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.32s ease !important;
+  will-change: transform, filter !important;
+}
+
+.hair-card:hover {
+  transform: translateY(-8px) scale(1.045) !important;
+  filter: drop-shadow(0 10px 0 rgba(98, 131, 206, 0.28)) !important;
+}
+
+.hair-card:hover .hair-thumb-wrap {
+  animation: hairButtonPop 0.42s cubic-bezier(0.22, 1, 0.36, 1) both !important;
+}
+
+.hair-card:active {
+  transform: translateY(-2px) scale(0.985) !important;
+  filter: drop-shadow(0 3px 0 rgba(98, 131, 206, 0.32)) !important;
+}
+
+.hair-card:active .hair-thumb-wrap {
+  transform: scale(0.97) !important;
+}
+
+@keyframes hairButtonPop {
+  0% {
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+  38% {
+    transform: translateY(-7px) scale(1.08) rotate(-1.2deg);
+  }
+  68% {
+    transform: translateY(-4px) scale(1.045) rotate(0.7deg);
+  }
+  100% {
+    transform: translateY(-5px) scale(1.055) rotate(0deg);
+  }
+}
+
+/* 编号也一起轻轻跟动，强调“可以点开” */
+.hair-meta {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.28s ease !important;
+}
+
+.hair-card:hover .hair-meta {
+  transform: translateY(-3px) scale(1.08) !important;
+  opacity: 1 !important;
+}
+
+  
+
+/* ===== FINAL PATCH: background follows selected color / ALL rainbow scroll ===== */
+/* 只改页面主背景，不动右侧列表文字颜色，避免 UI 变乱 */
+html,
+body,
+.hair-page,
+.hair-scroll,
+.viewer {
+  background-color: var(--active-bg, var(--hair-bg)) !important;
+  transition: background-color 0.5s ease !important;
+}
+
+.viewer-close {
+  background-color: var(--active-bg, var(--hair-bg)) !important;
+}
+
+
+/* ===== FINAL PATCH: user PNG conveyor overlay ===== */
+/* 这张 PNG 是独立图层：不会替换/覆盖原来的颜色背景，只叠在背景上方 */
+.hair-machine-overlay {
+  position: fixed !important;
+  left: 208px !important;
+  top: -57px !important;
+  width: 1504px !important;
+  height: auto !important;
+  z-index: 5 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+  -webkit-user-drag: none !important;
+}
+
+/* 让底色和 PNG 都能露出来；照片墙内容仍然在 PNG 上方 */
+.hair-scroll {
+  background: transparent !important;
+  z-index: 10 !important;
+}
+
+.hair-grid,
+.empty-state {
+  position: relative !important;
+  z-index: 20 !important;
+}
+
+.hair-header {
+  z-index: 300 !important;
+}
+
+.drawer-panel {
+  z-index: 260 !important;
+}
+
+.viewer {
+  z-index: 1000 !important;
+}
+
+
+/* ===== FINAL FIX: CN / EN intro must stay UNDER photo wall ===== */
+.hair-page {
+  isolation: isolate !important;
+}
+
+.hair-machine-overlay {
+  z-index: 5 !important;
+}
+
+.hair-all-intro-group {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 6 !important; /* above machine PNG, below scrolling photos */
+  pointer-events: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: opacity 0.35s ease, visibility 0.35s ease !important;
+}
+
+.hair-all-intro-group.is-hidden {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+.hair-scroll {
+  position: absolute !important;
+  z-index: 20 !important; /* whole photo wall is above text */
+  background: transparent !important;
+}
+
+.hair-grid,
+.empty-state {
+  position: relative !important;
+  z-index: 30 !important;
+}
+
+.hair-all-intro {
+  position: absolute !important;
+  width: 430px !important;
+  min-height: auto !important;
+  height: auto !important;
+  margin: 0 !important;
+
+  color: transparent !important;
+  font-size: 16px !important;
+  font-weight: 400 !important;
+  line-height: 1.42 !important;
+  letter-spacing: -0.02em !important;
+  white-space: normal !important;
+  pointer-events: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  text-wrap: pretty !important;
+
+  background: linear-gradient(90deg, #FF2A2A 0%, #FF8A00 16%, #FBFF00 32%, #87EF00 48%, #00FFD5 64%, #2F6BFF 80%, #B23CFF 100%) !important;
+  background-size: 220% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+
+  -webkit-text-stroke: 0.22px rgba(255,255,255,0.72) !important;
+  paint-order: stroke fill !important;
+  text-shadow: none !important;
+}
+
+.hair-all-intro-cn {
+  left: 112px !important;
+  top: 227px !important;
+}
+
+.hair-all-intro-en {
+  left: 576px !important;
+  top: 356px !important;
+  line-height: 1.36 !important;
+  letter-spacing: -0.015em !important;
+}
+
+.hair-all-intro p {
+  margin: 0 0 18px 0 !important;
+}
+
+.hair-all-intro-en p {
+  margin-bottom: 16px !important;
+}
+
+.hair-all-intro p:last-child {
+  margin-bottom: 0 !important;
+}
+
+  
+
+/* ===== FINAL PATCH: viewer uses Back button only, no left/right pager ===== */
+.viewer-pager {
+  display: none !important;
+}
+
+.viewer-close {
+  min-width: 142px !important;
+  height: 42px !important;
+  gap: 8px !important;
+}
+
+.viewer-close .hair-ui-icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+
+
+/* ===== FINAL PATCH: viewer bilingual captions ===== */
+.viewer-caption {
+  position: absolute !important;
+  right: 64px !important;
+  top: 210px !important;
+  width: 360px !important;
+  z-index: 4 !important;
+  color: var(--hair-blue) !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.045em !important;
+  line-height: 1.18 !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  transform: translateY(10px) !important;
+  transition: opacity 0.42s ease 0.18s, transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.18s !important;
+}
+
+.viewer.is-open .viewer-caption {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.viewer-caption-zh,
+.viewer-caption-en {
+  display: block !important;
+  color: var(--hair-blue) !important;
+  -webkit-text-stroke: 0.65px #101010 !important;
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255,255,255,0.9),
+    0 0 8px rgba(255,242,0,0.55) !important;
+}
+
+.viewer-caption-zh {
+  font-size: 20px !important;
+  margin-bottom: 16px !important;
+}
+
+.viewer-caption-en {
+  font-size: 17px !important;
+  line-height: 1.16 !important;
+}
+
+@media (max-width: 1200px) {
+  .viewer-caption {
+    right: 36px !important;
+    top: auto !important;
+    bottom: 38px !important;
+    width: 330px !important;
+  }
+}
+
+</style>
+</head>
+<body>
+  <main class="hair-page">
+    <img class="hair-machine-overlay" src="./images/hair-archive-overlay.png" alt="" aria-hidden="true" />
+    <header class="hair-header">
+      <div class="hair-logo" aria-label="SMART 3D logo">
+        <model-viewer
+          class="hair-logo-model"
+          src="./models/smart.glb.glb"
+          alt="SMART 3D logo"
+          interaction-prompt="none"
+          disable-zoom
+          environment-image="neutral"
+          shadow-intensity="0"
+          exposure="0.9"
+          camera-orbit="0deg 75deg 155%"
+          field-of-view="26deg"
+        ></model-viewer>
+      </div>
+    </header>
+    <div class="hair-all-intro-group" id="hairAllIntro" aria-hidden="false">
+      <div class="hair-all-intro hair-all-intro-cn">
+        <p>在 SMART 的视觉文化中，头发是最先被看见的部分，也是最容易被误解的部分。</p>
+        <p>它被竖起、染亮、放大、遮挡，脱离日常身体的尺度，变成一种可以被远远识别的形象。</p>
+        <p>对这些年轻人来说，发型不只是装饰。它连接着自拍、头像、QQ空间，也连接着同伴之间的识别与靠近。在工厂、出租屋和城市边缘的灰色背景中，高饱和的头发像一种临时生长出来的翅膀，让他们从重复的劳动和沉默的生活里短暂地跳出来。</p>
+        <p>这个档案库以颜色为线索整理这些发型图像：红、橙、黄、绿、青、蓝、紫。分类不是为了把他们固定成某种“奇观样本”，而是为了重新观看这些曾被嘲笑、截图、转发和遗忘的形象。</p>
+        <p>当头发被染成一种不肯融入背景的颜色，它也许正在说：</p>
+        <p>我存在，我被看见，我可以用自己的方式定义自己。</p>
+      </div>
+
+      <div class="hair-all-intro hair-all-intro-en">
+        <p>In the visual culture of SMART, hair is the first part to be seen and also the part that is most easily misunderstood.</p>
+        <p>It was erected, illuminated, magnified and obscured, breaking away from the scale of the everyday body and transforming into an image that could be recognized from afar.</p>
+        <p>For these young people, hairstyle is not merely an adornment. It links selfies, profile pictures, and QQ spaces, and also connects the recognition and approach among peers. Against the backdrop of factories, rental houses, and the gray fringes of the city, the highly saturated hair is like a pair of temporarily grown wings, allowing them to briefly break away from repetitive labor and silent life.</p>
+        <p>This archive organizes these hairstyle images by color: red, orange, yellow, green, cyan, blue, and purple. The classification is not to fix them as some kind of “spectacle samples”, but to re-examine these images that were once ridiculed, screenshot, forwarded and forgotten.</p>
+        <p>When hair is dyed a color that refuses to blend into the background, it might be saying:</p>
+        <p>I exist, I am seen, and I can define myself in my own way.</p>
+      </div>
+    </div>
+
+    <aside class="drawer-panel" id="drawerPanel" aria-label="hair color drawer">
+   <button class="directory-toggle hair-icon-button" id="directoryToggle" type="button">
+  <img class="hair-ui-icon" src="./icons/icon-list.png" alt="">
+  <span>列表 LIST</span>
+</button>
+      <a class="hair-close hair-icon-button" href="index.html?screen=model">
+  <img class="hair-ui-icon" src="./icons/icon-back.png" alt="">
+  <span>返回 Back</span>
+</a>
+      <nav class="color-nav" id="colorNav" aria-label="hair color filters"></nav>
+    </aside>
+
+    <section class="hair-scroll">
+      <div class="hair-grid" id="hairGrid"></div>
+      <div class="empty-state" id="emptyState" hidden>
+        还没有找到图片。<br><br>
+        请在 index 文件夹里新建 hair 文件夹，然后按颜色命名：<br>
+        hair/red-01.jpg<br>
+        hair/orange-01.jpg<br>
+        hair/yellow-01.jpg<br>
+        hair/cyan-01.jpg
+      </div>
+    </section>
+  </main>
+
+  <div class="viewer" id="viewer" aria-hidden="true">
+    <div class="viewer-frame">
+      <div class="viewer-info" id="viewerInfo">SMART<br>HAIR ARCHIVE<br>IMAGE</div>
+      <button class="viewer-close hair-icon-button" id="viewerClose" type="button">
+  <img class="hair-ui-icon" src="./icons/icon-back.png" alt="">
+  <span>返回 Back</span>
+</button>
+      <img class="viewer-image" id="viewerImage" alt="hair archive image" />
+      <div class="viewer-index" id="viewerIndex">1</div>
+      <div class="viewer-caption" id="viewerCaption" aria-live="polite">
+        <div class="viewer-caption-zh" id="viewerCaptionZh"></div>
+        <div class="viewer-caption-en" id="viewerCaptionEn"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const COLORS = [
+  { key: "all", label: "ALL", zh: "全部" },
+  { key: "red", label: "RED", zh: "红色" },
+  { key: "orange", label: "ORANGE", zh: "橙色" },
+  { key: "yellow", label: "YELLOW", zh: "黄色" },
+  { key: "green", label: "GREEN", zh: "绿色" },
+  { key: "cyan", label: "CYAN", zh: "青色" },
+  { key: "blue", label: "BLUE", zh: "蓝色" },
+  { key: "purple", label: "PURPLE", zh: "紫色" }
+];
+
+    const IMAGE_CAPTIONS = [
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它靠近工厂，也靠近网络。",
+    "en": "Hair appears before the name, and is recognized before identity. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "Hair appears before the name, and is recognized before identity. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它把私人情绪放进公共视线里。",
+    "en": "Hair appears before the name, and is recognized before identity. It places private feeling into public sight."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "Hair appears before the name, and is recognized before identity. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "Hair appears before the name, and is recognized before identity. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它不是复古，而是仍然刺眼的现实。",
+    "en": "Hair appears before the name, and is recognized before identity. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它把同伴关系藏在颜色和姿态之间。",
+    "en": "Hair appears before the name, and is recognized before identity. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "Hair appears before the name, and is recognized before identity. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它有点脆弱，也有点倔强。",
+    "en": "Hair appears before the name, and is recognized before identity. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它不需要被美化，只需要被重新认真地看见。",
+    "en": "Hair appears before the name, and is recognized before identity. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它在网络里漂流，也在档案里停靠。",
+    "en": "Hair appears before the name, and is recognized before identity. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它把一瞬间的自我想象留了下来。",
+    "en": "Hair appears before the name, and is recognized before identity. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它不是背景的一部分，而是对背景的打断。",
+    "en": "Hair appears before the name, and is recognized before identity. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "头发先于名字出现，也先于身份被认出。它从个人造型开始，却指向一整代人的处境。",
+    "en": "Hair appears before the name, and is recognized before identity. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它靠近工厂，也靠近网络。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它把私人情绪放进公共视线里。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It places private feeling into public sight."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它不是复古，而是仍然刺眼的现实。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它把同伴关系藏在颜色和姿态之间。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它有点脆弱，也有点倔强。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它不需要被美化，只需要被重新认真地看见。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它在网络里漂流，也在档案里停靠。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它把一瞬间的自我想象留了下来。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它不是背景的一部分，而是对背景的打断。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "被保存下来的不只是发型，也是一次试图被看见的瞬间。它从个人造型开始，却指向一整代人的处境。",
+    "en": "What is preserved here is not only a hairstyle, but a moment of trying to be seen. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它靠近工厂，也靠近网络。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它把私人情绪放进公共视线里。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It places private feeling into public sight."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它不是复古，而是仍然刺眼的现实。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它把同伴关系藏在颜色和姿态之间。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它有点脆弱，也有点倔强。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它不需要被美化，只需要被重新认真地看见。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它在网络里漂流，也在档案里停靠。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它把一瞬间的自我想象留了下来。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它不是背景的一部分，而是对背景的打断。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "这不是装饰，而是一种把自己从背景里拉出来的方式。它从个人造型开始，却指向一整代人的处境。",
+    "en": "This is not decoration, but a way of pulling oneself out of the background. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它靠近工厂，也靠近网络。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它把私人情绪放进公共视线里。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It places private feeling into public sight."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它不是复古，而是仍然刺眼的现实。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它把同伴关系藏在颜色和姿态之间。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它有点脆弱，也有点倔强。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它不需要被美化，只需要被重新认真地看见。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它在网络里漂流，也在档案里停靠。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它把一瞬间的自我想象留了下来。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它不是背景的一部分，而是对背景的打断。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "自拍不是自恋，而是一次对自己形象的重新认领。它从个人造型开始，却指向一整代人的处境。",
+    "en": "The selfie is not vanity, but a reclaiming of one’s own image. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它靠近工厂，也靠近网络。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它把私人情绪放进公共视线里。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It places private feeling into public sight."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它不是复古，而是仍然刺眼的现实。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它把同伴关系藏在颜色和姿态之间。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它有点脆弱，也有点倔强。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它不需要被美化，只需要被重新认真地看见。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它在网络里漂流，也在档案里停靠。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它把一瞬间的自我想象留了下来。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它不是背景的一部分，而是对背景的打断。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "高饱和的颜色让身体变得醒目，也让沉默变得可见。它从个人造型开始，却指向一整代人的处境。",
+    "en": "Highly saturated color makes the body visible, and makes silence visible too. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它靠近工厂，也靠近网络。",
+    "en": "The styles once mocked were also signals through which they found one another. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "The styles once mocked were also signals through which they found one another. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它把私人情绪放进公共视线里。",
+    "en": "The styles once mocked were also signals through which they found one another. It places private feeling into public sight."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "The styles once mocked were also signals through which they found one another. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "The styles once mocked were also signals through which they found one another. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它不是复古，而是仍然刺眼的现实。",
+    "en": "The styles once mocked were also signals through which they found one another. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它把同伴关系藏在颜色和姿态之间。",
+    "en": "The styles once mocked were also signals through which they found one another. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "The styles once mocked were also signals through which they found one another. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它有点脆弱，也有点倔强。",
+    "en": "The styles once mocked were also signals through which they found one another. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它不需要被美化，只需要被重新认真地看见。",
+    "en": "The styles once mocked were also signals through which they found one another. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它在网络里漂流，也在档案里停靠。",
+    "en": "The styles once mocked were also signals through which they found one another. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它把一瞬间的自我想象留了下来。",
+    "en": "The styles once mocked were also signals through which they found one another. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它不是背景的一部分，而是对背景的打断。",
+    "en": "The styles once mocked were also signals through which they found one another. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "那些被嘲笑的造型，也曾是他们互相靠近的暗号。它从个人造型开始，却指向一整代人的处境。",
+    "en": "The styles once mocked were also signals through which they found one another. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它靠近工厂，也靠近网络。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它把私人情绪放进公共视线里。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It places private feeling into public sight."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它不是复古，而是仍然刺眼的现实。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它把同伴关系藏在颜色和姿态之间。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它有点脆弱，也有点倔强。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它不需要被美化，只需要被重新认真地看见。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它在网络里漂流，也在档案里停靠。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它把一瞬间的自我想象留了下来。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它不是背景的一部分，而是对背景的打断。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "发型不是终点，它连接着工厂、出租屋、QQ空间和同伴关系。它从个人造型开始，却指向一整代人的处境。",
+    "en": "The hairstyle is not the endpoint; it connects factories, rented rooms, QQ spaces, and peer relations. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它靠近工厂，也靠近网络。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它把私人情绪放进公共视线里。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It places private feeling into public sight."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它不是复古，而是仍然刺眼的现实。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它把同伴关系藏在颜色和姿态之间。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它有点脆弱，也有点倔强。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它不需要被美化，只需要被重新认真地看见。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它在网络里漂流，也在档案里停靠。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它把一瞬间的自我想象留了下来。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它不是背景的一部分，而是对背景的打断。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "他们不是为了成为奇观，而是在寻找一种能被认出的样子。它从个人造型开始，却指向一整代人的处境。",
+    "en": "They were not trying to become a spectacle, but searching for a form that could be recognized. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它靠近工厂，也靠近网络。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它把私人情绪放进公共视线里。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It places private feeling into public sight."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它不是复古，而是仍然刺眼的现实。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它把同伴关系藏在颜色和姿态之间。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它有点脆弱，也有点倔强。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它不需要被美化，只需要被重新认真地看见。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它在网络里漂流，也在档案里停靠。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它把一瞬间的自我想象留了下来。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它不是背景的一部分，而是对背景的打断。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "当身体被劳动重复占据，头发成为最先逃离的部分。它从个人造型开始，却指向一整代人的处境。",
+    "en": "When the body was occupied by repetitive labor, hair became the first part to escape. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它靠近工厂，也靠近网络。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它把私人情绪放进公共视线里。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It places private feeling into public sight."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它不是复古，而是仍然刺眼的现实。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它把同伴关系藏在颜色和姿态之间。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它有点脆弱，也有点倔强。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它不需要被美化，只需要被重新认真地看见。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它在网络里漂流，也在档案里停靠。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它把一瞬间的自我想象留了下来。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它不是背景的一部分，而是对背景的打断。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "被截图、转发、嘲笑之前，它首先属于一个真实的人。它从个人造型开始，却指向一整代人的处境。",
+    "en": "Before being screenshotted, shared, and mocked, it first belonged to a real person. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它靠近工厂，也靠近网络。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它把私人情绪放进公共视线里。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It places private feeling into public sight."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它不是复古，而是仍然刺眼的现实。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它把同伴关系藏在颜色和姿态之间。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它有点脆弱，也有点倔强。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它不需要被美化，只需要被重新认真地看见。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它在网络里漂流，也在档案里停靠。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它把一瞬间的自我想象留了下来。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它不是背景的一部分，而是对背景的打断。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "他们用夸张的形象，对抗一种不被注意的生活。它从个人造型开始，却指向一整代人的处境。",
+    "en": "They used exaggerated images to resist a life that went unnoticed. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它靠近工厂，也靠近网络。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它把私人情绪放进公共视线里。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It places private feeling into public sight."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它不是复古，而是仍然刺眼的现实。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它把同伴关系藏在颜色和姿态之间。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它有点脆弱，也有点倔强。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它不需要被美化，只需要被重新认真地看见。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它在网络里漂流，也在档案里停靠。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它把一瞬间的自我想象留了下来。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它不是背景的一部分，而是对背景的打断。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "发型像一面旗帜，短暂地插在城市边缘。它从个人造型开始，却指向一整代人的处境。",
+    "en": "The hairstyle is like a flag, briefly planted on the edge of the city. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它靠近工厂，也靠近网络。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它把私人情绪放进公共视线里。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It places private feeling into public sight."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它不是复古，而是仍然刺眼的现实。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它把同伴关系藏在颜色和姿态之间。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它有点脆弱，也有点倔强。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它不需要被美化，只需要被重新认真地看见。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它在网络里漂流，也在档案里停靠。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它把一瞬间的自我想象留了下来。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它不是背景的一部分，而是对背景的打断。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "被看见并不等于被理解，但它是行动开始之前的第一步。它从个人造型开始，却指向一整代人的处境。",
+    "en": "To be seen is not the same as to be understood, but it is the first step before action. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它靠近工厂，也靠近网络。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它把私人情绪放进公共视线里。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It places private feeling into public sight."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它不是复古，而是仍然刺眼的现实。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它把同伴关系藏在颜色和姿态之间。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它有点脆弱，也有点倔强。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它不需要被美化，只需要被重新认真地看见。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它在网络里漂流，也在档案里停靠。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它把一瞬间的自我想象留了下来。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它不是背景的一部分，而是对背景的打断。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "这不是怀旧图像，而是关于审美权利的残留证据。它从个人造型开始，却指向一整代人的处境。",
+    "en": "This is not a nostalgic image, but remaining evidence of aesthetic rights. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它靠近工厂，也靠近网络。",
+    "en": "They turned online avatars into a temporary home. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "They turned online avatars into a temporary home. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它把私人情绪放进公共视线里。",
+    "en": "They turned online avatars into a temporary home. It places private feeling into public sight."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "They turned online avatars into a temporary home. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "They turned online avatars into a temporary home. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它不是复古，而是仍然刺眼的现实。",
+    "en": "They turned online avatars into a temporary home. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它把同伴关系藏在颜色和姿态之间。",
+    "en": "They turned online avatars into a temporary home. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "They turned online avatars into a temporary home. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它有点脆弱，也有点倔强。",
+    "en": "They turned online avatars into a temporary home. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它不需要被美化，只需要被重新认真地看见。",
+    "en": "They turned online avatars into a temporary home. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它在网络里漂流，也在档案里停靠。",
+    "en": "They turned online avatars into a temporary home. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它把一瞬间的自我想象留了下来。",
+    "en": "They turned online avatars into a temporary home. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它不是背景的一部分，而是对背景的打断。",
+    "en": "They turned online avatars into a temporary home. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "他们把网络头像变成了一个临时的家。它从个人造型开始，却指向一整代人的处境。",
+    "en": "They turned online avatars into a temporary home. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它靠近工厂，也靠近网络。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它把私人情绪放进公共视线里。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It places private feeling into public sight."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它不是复古，而是仍然刺眼的现实。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它把同伴关系藏在颜色和姿态之间。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它有点脆弱，也有点倔强。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它不需要被美化，只需要被重新认真地看见。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它在网络里漂流，也在档案里停靠。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它把一瞬间的自我想象留了下来。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它不是背景的一部分，而是对背景的打断。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "那些被说成‘土’的颜色，其实是不愿融入背景的颜色。它从个人造型开始，却指向一整代人的处境。",
+    "en": "The colors once called ‘tacky’ were colors that refused to blend into the background. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它靠近工厂，也靠近网络。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它把私人情绪放进公共视线里。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It places private feeling into public sight."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它不是复古，而是仍然刺眼的现实。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它把同伴关系藏在颜色和姿态之间。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It hides peer relations between color and posture."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它让被忽略的人拥有一种可以被记住的轮廓。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It gives the overlooked a silhouette that can be remembered."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它有点脆弱，也有点倔强。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It is fragile, and also stubborn."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它不需要被美化，只需要被重新认真地看见。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It does not need beautification; it needs to be seen seriously again."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它在网络里漂流，也在档案里停靠。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It drifted online, and now docks inside the archive."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它把一瞬间的自我想象留了下来。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It leaves behind a fleeting imagination of the self."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它不是背景的一部分，而是对背景的打断。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It is not part of the background, but an interruption of it."
+  },
+  {
+    "zh": "在这里，头发不是边缘的符号，而是进入历史的入口。它从个人造型开始，却指向一整代人的处境。",
+    "en": "Here, hair is not a sign of marginality, but an entrance into history. It begins as personal styling, yet points to the condition of a generation."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它靠近工厂，也靠近网络。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It stays close to the factory, and close to the internet."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它属于一段很短的青春，也属于更长的社会记忆。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It belongs to a short youth, and to a longer social memory."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它把私人情绪放进公共视线里。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It places private feeling into public sight."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它曾被当成笑话，却也保存了真实的愿望。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It was once treated as a joke, yet it preserved a real desire."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它让一个人从编号、岗位和沉默里暂时走出来。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It lets someone briefly step out of numbers, positions, and silence."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它不是复古，而是仍然刺眼的现实。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It is not retro; it is a reality that still dazzles."
+  },
+  {
+    "zh": "镜头里的姿态很轻，但它背后有很重的生活。它把同伴关系藏在颜色和姿态之间。",
+    "en": "The pose in the image is light, but the life behind it is heavy. It hides peer relations between color and posture."
+  }
+];
+
+    const FILTER_BACKGROUNDS = {
+      all: "#FF2A2A",
+      red: "#FF2A2A",
+      orange: "#FF8A00",
+      yellow: "#FBFF00",
+      green: "#87EF00",
+      cyan: "#00FFD5",
+      blue: "#2F6BFF",
+      purple: "#B23CFF"
+    };
+
+    const ALL_BACKGROUND_STOPS = [
+      "#FF2A2A",
+      "#FF8A00",
+      "#FBFF00",
+      "#87EF00",
+      "#00FFD5",
+      "#2F6BFF",
+      "#B23CFF"
+    ];
+
+    function hexToRgb(hex) {
+      const clean = hex.replace("#", "");
+      return {
+        r: parseInt(clean.slice(0, 2), 16),
+        g: parseInt(clean.slice(2, 4), 16),
+        b: parseInt(clean.slice(4, 6), 16)
+      };
+    }
+
+    function rgbToHex({ r, g, b }) {
+      return "#" + [r, g, b].map(v => {
+        const n = Math.max(0, Math.min(255, Math.round(v)));
+        return n.toString(16).padStart(2, "0");
+      }).join("");
+    }
+
+    function mixColor(a, b, t) {
+      const ca = hexToRgb(a);
+      const cb = hexToRgb(b);
+      return rgbToHex({
+        r: ca.r + (cb.r - ca.r) * t,
+        g: ca.g + (cb.g - ca.g) * t,
+        b: ca.b + (cb.b - ca.b) * t
+      });
+    }
+
+    function getAllScrollColor(progress) {
+      const stops = ALL_BACKGROUND_STOPS;
+      const clamped = Math.max(0, Math.min(1, progress));
+      const scaled = clamped * (stops.length - 1);
+      const index = Math.min(stops.length - 2, Math.floor(scaled));
+      const localT = scaled - index;
+      return mixColor(stops[index], stops[index + 1], localT);
+    }
+
+    function setArchiveBackground(color) {
+      document.documentElement.style.setProperty("--active-bg", color);
+    }
+
+    function updateAllGradientBackground() {
+      if (currentFilter !== "all" || !hairScroll) return;
+
+      const maxScroll = Math.max(1, hairScroll.scrollHeight - hairScroll.clientHeight);
+      const progress = hairScroll.scrollTop / maxScroll;
+      setArchiveBackground(getAllScrollColor(progress));
+    }
+
+    function updateBackgroundForFilter() {
+      if (currentFilter === "all") {
+        updateAllGradientBackground();
+        return;
+      }
+
+      setArchiveBackground(FILTER_BACKGROUNDS[currentFilter] || "#FBFF00");
+    }
+
+    function updateAllIntroVisibility() {
+      if (!hairAllIntro) return;
+      const show = currentFilter === "all";
+      hairAllIntro.classList.toggle("is-hidden", !show);
+      hairAllIntro.setAttribute("aria-hidden", show ? "false" : "true");
+    }
+
+    /*
+      图片命名规则：
+      hair/red-01.jpg, hair/orange-01.jpg, hair/yellow-01.jpg ...
+      hair/cyan-01.jpg, hair/blue-01.jpg, hair/purple-01.jpg ...
+      每个颜色最多自动尝试 40 张。
+    */
+    const MAX_PER_COLOR = 300;
+    let allItems = [];
+    let currentFilter = "all";
+    let visibleItems = allItems;
+    let currentIndex = 0;
+
+    const colorNav = document.getElementById("colorNav");
+    const hairAllIntro = document.getElementById("hairAllIntro");
+    const hairGrid = document.getElementById("hairGrid");
+    const hairScroll = document.querySelector(".hair-scroll");
+    const emptyState = document.getElementById("emptyState");
+    const viewer = document.getElementById("viewer");
+    const viewerImage = document.getElementById("viewerImage");
+    const viewerInfo = document.getElementById("viewerInfo");
+    const viewerIndex = document.getElementById("viewerIndex");
+    const viewerCaptionZh = document.getElementById("viewerCaptionZh");
+    const viewerCaptionEn = document.getElementById("viewerCaptionEn");
+    const viewerClose = document.getElementById("viewerClose");
+    const directoryToggle = document.getElementById("directoryToggle");
+
+    /* ===== AUTO SCROLL: photo wall moves by itself ===== */
+    const AUTO_SCROLL_SPEED = 55; // 数值越大滚动越快，建议 35–75
+    let autoScrollFrame = null;
+    let autoScrollLastTime = null;
+    let autoScrollDirection = 1;
+    let autoScrollPausedUntil = 0;
+    let pointerInsideHairCard = false;
+
+    function getMaxHairScroll() {
+      if (!hairScroll) return 0;
+      return Math.max(0, hairScroll.scrollHeight - hairScroll.clientHeight);
+    }
+
+    function pauseAutoScroll(duration = 1200) {
+      autoScrollPausedUntil = Math.max(autoScrollPausedUntil, performance.now() + duration);
+    }
+
+    function resetAutoScrollAfterContentChange() {
+      autoScrollDirection = 1;
+      autoScrollLastTime = null;
+      pauseAutoScroll(850);
+    }
+
+    function startAutoScroll() {
+      if (autoScrollFrame) {
+        cancelAnimationFrame(autoScrollFrame);
+      }
+
+      autoScrollLastTime = null;
+      autoScrollFrame = requestAnimationFrame(autoScrollLoop);
+    }
+
+    function autoScrollLoop(now) {
+      const viewerOpen = viewer && viewer.classList.contains("is-open");
+      const maxScroll = getMaxHairScroll();
+
+      const shouldPause =
+        !hairScroll ||
+        viewerOpen ||
+        now < autoScrollPausedUntil ||
+        maxScroll <= 2;
+
+      if (!shouldPause) {
+        if (autoScrollLastTime !== null) {
+          const deltaSeconds = Math.min(64, now - autoScrollLastTime) / 1000;
+          let nextTop = hairScroll.scrollTop + AUTO_SCROLL_SPEED * autoScrollDirection * deltaSeconds;
+
+          if (nextTop >= maxScroll) {
+            nextTop = maxScroll;
+            autoScrollDirection = -1;
+            pauseAutoScroll(900);
+          } else if (nextTop <= 0) {
+            nextTop = 0;
+            autoScrollDirection = 1;
+            pauseAutoScroll(900);
+          }
+
+          hairScroll.scrollTop = nextTop;
+          updateAllGradientBackground();
+        }
+      }
+
+      autoScrollLastTime = now;
+      autoScrollFrame = requestAnimationFrame(autoScrollLoop);
+    }
+
+
+    function pad(num) {
+      return String(num).padStart(2, "0");
+    }
+
+    function testImage(src) {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(src);
+        img.onerror = () => resolve(null);
+        img.src = src;
+      });
+    }
+
+    async function findFirstExisting(paths) {
+      const results = await Promise.all(paths.map(testImage));
+      return results.find(Boolean) || null;
+    }
+
+    function shuffleArray(array) {
+      const result = array.slice();
+
+      for (let i = result.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [result[i], result[j]] = [result[j], result[i]];
+      }
+
+      return result;
+    }
+
+    function padCover(num) {
+      return String(num).padStart(3, "0");
+    }
+
+    async function loadCoverPool() {
+      const extensions = ["jpg", "jpeg", "png", "webp"];
+      const MAX_COVERS = 800;
+      const coverTests = [];
+
+      for (let i = 1; i <= MAX_COVERS; i++) {
+        const number = padCover(i);
+        const coverPaths = extensions.map(
+          ext => `hair-covers/cover-${number}.${ext}`
+        );
+
+        coverTests.push(findFirstExisting(coverPaths));
+      }
+
+      const covers = (await Promise.all(coverTests)).filter(Boolean);
+      return shuffleArray(covers);
+    }
+
+   async function loadImages() {
+  const extensions = ["jpg", "jpeg", "png", "webp"];
+  const coverPool = await loadCoverPool();
+  const itemTests = [];
+
+  COLORS.filter(color => color.key !== "all").forEach((color) => {
+    for (let i = 1; i <= MAX_PER_COLOR; i++) {
+      const number = pad(i);
+
+      itemTests.push((async () => {
+        const realPaths = extensions.map(
+          ext => `hair/${color.key}/${color.key}-${number}.${ext}`
+        );
+
+        const realSrc = await findFirstExisting(realPaths);
+        if (!realSrc) return null;
+
+        return {
+          color: color.key,
+          colorLabel: color.label,
+          colorZh: color.zh,
+          number,
+          src: realSrc // 点开后显示本人照片
+        };
+      })());
+    }
+  });
+
+  const results = await Promise.all(itemTests);
+  const realItems = results.filter(Boolean);
+
+  // 给每一张本人照片分配一张公共封面。
+  // 关键点：不要在上面的 async 里面用 itemTests.length，
+  // 否则所有图片可能拿到同一张 cover。
+  allItems = realItems.map((item, index) => ({
+    ...item,
+    coverSrc: coverPool.length ? coverPool[index % coverPool.length] : item.src,
+    // 用跳跃索引分配批注，避免连续点开相邻图片时看到同一组相似句子
+    caption: IMAGE_CAPTIONS[(index * 37 + 11) % IMAGE_CAPTIONS.length]
+  }));
+
+  renderGrid();
+}
+
+  function renderNav() {
+  colorNav.innerHTML = "";
+
+  COLORS.forEach((color) => {
+    const btn = document.createElement("button");
+    btn.className = "color-button" + (color.key === currentFilter ? " is-active" : "");
+    btn.type = "button";
+    btn.dataset.color = color.key;
+   btn.innerHTML = `
+  <span class="color-mark"></span>
+  <span class="color-text">
+    <span class="color-zh">${color.zh}</span>
+    <span class="color-en">${color.label}</span>
+  </span>
+`;
+
+    btn.addEventListener("click", () => {
+      currentFilter = color.key;
+
+      document.querySelectorAll(".color-button").forEach((b) => {
+        b.classList.toggle("is-active", b.dataset.color === currentFilter);
+      });
+
+      // 单色分类：背景立刻切到对应颜色；ALL：从红色开始，滚动时渐变到紫色
+      if (currentFilter === "all") {
+        setArchiveBackground(ALL_BACKGROUND_STOPS[0]);
+      } else {
+        updateBackgroundForFilter();
+      }
+
+      updateAllIntroVisibility();
+      renderGrid();
+
+      if (hairScroll) {
+        hairScroll.scrollTo({
+          top: 0,
+          behavior: "smooth"
+        });
+      }
+
+      colorNav.classList.remove("is-open");
+document.body.classList.remove("hair-list-open");
+    });
+
+    colorNav.appendChild(btn);
+  });
+}
+    function renderGrid() {
+  hairGrid.innerHTML = "";
+  visibleItems = currentFilter === "all"
+  ? allItems
+  : allItems.filter(item => item.color === currentFilter);
+
+      emptyState.hidden = visibleItems.length > 0;
+
+      visibleItems.forEach((item, index) => {
+  const card = document.createElement("button");
+
+        card.className = "hair-card";
+        card.type = "button";
+        card.style.animationDelay = `${Math.min(index * 0.035, 0.45)}s`;
+        card.innerHTML = `
+  <div class="hair-thumb-wrap">
+    <img class="hair-thumb hair-thumb-real" src="${item.src}" alt="${item.colorLabel} real hair ${item.number}">
+    <img class="hair-thumb hair-thumb-cover" src="${item.coverSrc || item.src}" alt="${item.colorLabel} cover ${item.number}">
+    <canvas class="hair-mosaic-layer" aria-hidden="true"></canvas>
+  </div>
+  <div class="hair-meta">${item.number.padStart(3, "0")}</div>
+`;
+        card.addEventListener("click", () => openViewer(index));
+        card.addEventListener("pointerenter", () => {
+          pointerInsideHairCard = false;
+        });
+        card.addEventListener("pointerleave", () => {
+          pointerInsideHairCard = false;
+        });
+        hairGrid.appendChild(card);
+      });
+
+      requestAnimationFrame(buildHairMosaics);
+      resetAutoScrollAfterContentChange();
+    }
+
+    function createBWPixelMosaic(img, canvas, pixelSize = 6) {
+      const naturalW = img.naturalWidth;
+      const naturalH = img.naturalHeight;
+      if (!naturalW || !naturalH) return;
+
+      const rect = img.getBoundingClientRect();
+      const displayW = Math.max(1, Math.round(rect.width));
+      const displayH = Math.max(1, Math.round(rect.height));
+
+      canvas.width = displayW;
+      canvas.height = displayH;
+
+      const ctx = canvas.getContext("2d");
+      const smallCanvas = document.createElement("canvas");
+      const smallCtx = smallCanvas.getContext("2d");
+
+      const smallW = Math.max(1, Math.floor(displayW / pixelSize));
+      const smallH = Math.max(1, Math.floor(displayH / pixelSize));
+
+      smallCanvas.width = smallW;
+      smallCanvas.height = smallH;
+
+      smallCtx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingEnabled = false;
+
+      const imgRatio = naturalW / naturalH;
+      const boxRatio = displayW / displayH;
+      let sx = 0;
+      let sy = 0;
+      let sw = naturalW;
+      let sh = naturalH;
+
+      // 和 CSS 的 object-position: center top 对齐：优先保留人物上半身
+      if (imgRatio > boxRatio) {
+        sw = naturalH * boxRatio;
+        sx = (naturalW - sw) / 2;
+      } else {
+        sh = naturalW / boxRatio;
+        sy = 0;
+      }
+
+      smallCtx.drawImage(img, sx, sy, sw, sh, 0, 0, smallW, smallH);
+
+      // 保留彩色，不再转黑白，只降低一点透明度，让马赛克不要太重
+      const imageData = smallCtx.getImageData(0, 0, smallW, smallH);
+      const data = imageData.data;
+
+      for (let i = 0; i < data.length; i += 4) {
+        data[i + 3] = 235;
+      }
+
+      smallCtx.putImageData(imageData, 0, 0);
+      ctx.clearRect(0, 0, displayW, displayH);
+      ctx.drawImage(smallCanvas, 0, 0, smallW, smallH, 0, 0, displayW, displayH);
+    }
+
+    function buildHairMosaics() {
+  document.querySelectorAll(".hair-card").forEach((card) => {
+    const img = card.querySelector(".hair-thumb-cover");
+    const canvas = card.querySelector(".hair-mosaic-layer");
+
+    if (!img || !canvas) return;
+
+    const draw = () => createBWPixelMosaic(img, canvas, 6);
+
+    if (img.complete && img.naturalWidth) {
+      draw();
+    } else {
+      img.addEventListener("load", draw, { once: true });
+    }
+  });
+}
+    function openViewer(index) {
+      pauseAutoScroll(2000);
+      currentIndex = index;
+      const item = visibleItems[currentIndex];
+      if (!item) return;
+
+      viewerImage.classList.remove("is-loaded");
+      viewerImage.removeAttribute("src");
+      viewerInfo.innerHTML = `SMART<br>HAIR ARCHIVE<br>${item.colorLabel} / ${item.colorZh}`;
+      viewerIndex.textContent = `${currentIndex + 1} / ${visibleItems.length}`;
+
+      const caption = item.caption || IMAGE_CAPTIONS[currentIndex % IMAGE_CAPTIONS.length];
+      if (viewerCaptionZh) viewerCaptionZh.textContent = caption.zh;
+      if (viewerCaptionEn) viewerCaptionEn.textContent = caption.en;
+
+      viewer.classList.add("is-open");
+      viewer.setAttribute("aria-hidden", "false");
+
+      requestAnimationFrame(() => {
+        viewerImage.src = item.src;
+        viewerImage.onload = () => {
+          requestAnimationFrame(() => viewerImage.classList.add("is-loaded"));
+        };
+      });
+    }
+
+    function closeViewer() {
+      pauseAutoScroll(900);
+      viewer.classList.remove("is-open");
+      viewer.setAttribute("aria-hidden", "true");
+      setTimeout(() => {
+        viewerImage.classList.remove("is-loaded");
+        viewerImage.removeAttribute("src");
+      }, 320);
+    }
+
+    viewerClose.addEventListener("click", closeViewer);
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && viewer.classList.contains("is-open")) closeViewer();
+    });
+
+    if (directoryToggle) {
+  directoryToggle.addEventListener("click", () => {
+  colorNav.classList.toggle("is-open");
+  document.body.classList.toggle("hair-list-open", colorNav.classList.contains("is-open"));
+});
+}
+    renderNav();
+    updateAllIntroVisibility();
+    loadImages().then(() => {
+      updateAllGradientBackground();
+      startAutoScroll();
+    });
+
+    if (hairScroll) {
+      hairScroll.addEventListener("scroll", updateAllGradientBackground, { passive: true });
+      hairScroll.addEventListener("wheel", () => pauseAutoScroll(2600), { passive: true });
+      hairScroll.addEventListener("touchstart", () => pauseAutoScroll(2600), { passive: true });
+    }
+
+    // 不再因为鼠标在整个照片墙区域就暂停；只在鼠标悬停到某一张照片上时暂停。
+
+    window.addEventListener("resize", () => {
+      buildHairMosaics();
+      updateAllGradientBackground();
+    });
+  </script>
+</body>
+</html>

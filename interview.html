@@ -1,0 +1,4189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SMART · Voice Archive</title>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+      color: #ffffff;
+      font-family: Arial, "Helvetica Neue", sans-serif;
+    }
+
+    .voice-page {
+      position: fixed;
+      inset: 0;
+      background: #000000;
+      overflow: hidden;
+    }
+
+    .voice-header {
+      position: fixed;
+      left: 24px;
+      top: 22px;
+      right: 24px;
+      z-index: 50;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+
+    .voice-title {
+      font-size: 22px;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -0.05em;
+      text-transform: uppercase;
+      color: #ff2fd2;
+    }
+
+    .voice-close {
+  position: fixed;
+  top: 22px;
+  right: 520px;
+  z-index: 90;
+
+  pointer-events: auto;
+  color: #ff2fd2;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+}
+body.panel-collapsed .voice-close {
+  right: 96px;
+}
+
+    .voice-close:hover {
+      color: #72ffda;
+    }
+
+    .visual-stage {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(100vw - 420px);
+      height: 100vh;
+      background: #050505;
+      overflow: hidden;
+    }
+
+    #audioCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      opacity: 0.92;
+    }
+
+    .now-playing {
+      position: absolute;
+      left: 80px;
+      right: 80px;
+      top: 50%;
+      z-index: 5;
+      transform: translateY(-50%);
+      display: grid;
+      grid-template-columns: 120px 1fr 120px;
+      gap: 48px;
+      align-items: center;
+      color: #ff2fd2;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      pointer-events: none;
+    }
+
+    .play-button {
+      pointer-events: auto;
+      border: 0;
+      background: transparent;
+      color: #ff2fd2;
+      font-size: 36px;
+      font-weight: 900;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .play-button:hover {
+      color: #72ffda;
+    }
+
+    .current-title {
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .current-sub {
+      margin-top: 10px;
+      font-size: 14px;
+      line-height: 1.3;
+      color: rgba(210, 65, 89, 0.72);
+      letter-spacing: 0;
+    }
+    .current-sub {
+  display: none !important;
+}
+    .track-detail {
+  display: none;
+  margin-top: 18px;
+}
+
+.track-item.is-active .track-detail {
+  display: block;
+}
+
+.track-portrait {
+  width: 132px;
+  height: 132px;
+  object-fit: cover;
+  display: block;
+  border: 2px solid #72ffda;
+  background: #000000;
+  margin-bottom: 12px;
+}
+
+.track-age {
+  color: #72ffda;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+    .current-time {
+      font-size: 20px;
+      text-align: right;
+    }
+
+    .interview-panel {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 420px;
+      height: 100vh;
+      z-index: 40;
+      background: #ff2fd2;
+      color: #72ffda;
+      border-left: 1px solid rgba(114, 255, 218, 0.7);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .interview-panel.is-collapsed {
+  transform: translateX(100%);
+}
+.panel-toggle {
+  position: fixed;
+  right: 420px;
+  top: 0;
+  z-index: 999;
+
+  width: 72px;
+  height: 90px;
+
+  border: 1px solid rgba(114, 255, 218, 0.7);
+  border-top: 0;
+  background: #ff2fd2;
+  color: #72ffda;
+
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+body.panel-collapsed .panel-toggle {
+  right: 0;
+}
+
+.panel-toggle:hover {
+  background: #72ffda;
+  color: #ff2fd2;
+}
+
+.visual-stage {
+  transition: width 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+body.panel-collapsed .visual-stage {
+  width: 100vw;
+}
+
+    .panel-header {
+      height: 90px;
+      padding: 22px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid rgba(114, 255, 218, 0.7);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .track-list {
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .track-item {
+      width: 100%;
+      min-height: 96px;
+      padding: 18px 52px 18px 24px;
+      position: relative;
+      border: 0;
+      border-bottom: 1px solid rgba(114, 255, 218, 0.7);
+      background: transparent;
+      color: #72ffda;
+      text-align: left;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .track-item:hover,
+.track-item.is-active {
+  background: rgba(114, 255, 218, 0.12);
+}
+
+.track-item.is-active {
+  min-height: 300px;
+}
+
+    .track-title {
+      font-size: 20px;
+      line-height: 1.05;
+      font-weight: 900;
+      letter-spacing: -0.05em;
+    }
+
+    .track-meta {
+      margin-top: 10px;
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 12px;
+      font-size: 14px;
+      line-height: 1.1;
+      font-weight: 900;
+    }
+
+    .track-arrow {
+      position: absolute;
+      right: 22px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 28px;
+      font-weight: 900;
+    }
+
+    .track-item.is-active .track-arrow {
+      transform: translateY(-50%) rotate(90deg);
+    }
+
+    audio {
+      display: none;
+    }
+    /* ===== SAFE PATCH: interview panel alignment + colors ===== */
+
+/* 先隐藏左边单独的 X ESC */
+.voice-close {
+  display: none !important;
+}
+.interview-panel,
+.panel-toggle {
+  background: #53BDFF !important;
+  color: #FF5874 !important;
+  border-color: rgba(210, 65, 89, 0.65) !important;
+}
+
+.panel-header,
+.track-item {
+  border-color: rgba(210, 65, 89, 0.65) !important;
+}
+
+.panel-header,
+.panel-header a,
+.track-item,
+.track-title,
+.track-meta,
+.track-age,
+.track-arrow {
+  color: #FF5874 !important;
+}
+
+.track-portrait {
+  border-color: #FF5874 !important;
+}
+
+.panel-toggle:hover {
+  background: #FF5874 !important;
+  color: #53BDFF !important;
+}
+.panel-toggle {
+  width: 104px !important;
+  height: 90px !important;
+  right: 420px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.panel-header {
+  height: 90px !important;
+  padding: 0 32px !important;
+
+  display: grid !important;
+  grid-template-columns: 1fr auto !important;
+  align-items: center !important;
+
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+}
+/* ESC inside interview panel */
+.panel-esc,
+.panel-esc:visited {
+  color: #FF5874 !important;
+  text-decoration: none !important;
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+}
+
+.panel-esc:hover {
+  text-decoration: underline !important;
+}
+/* ===== FIX: make LIST tab physically attached to interview panel ===== */
+
+.interview-panel {
+  overflow: visible !important;
+}
+
+.panel-toggle {
+  position: absolute !important;
+  left: -104px !important;
+  right: auto !important;
+  top: 0 !important;
+
+  width: 104px !important;
+  height: 90px !important;
+
+  z-index: 10 !important;
+
+  background: #53BDFF !important;
+  color: #FF5874 !important;
+  border: 1px solid rgba(210, 65, 89, 0.65) !important;
+  border-right: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+
+  border-radius: 0 !important;
+}
+
+body.panel-collapsed .panel-toggle {
+  left: -104px !important;
+  right: auto !important;
+}
+/* ===== FINAL INTERVIEW COLOR SYSTEM ===== */
+
+.voice-page,
+.visual-stage,
+.interview-panel,
+.panel-toggle,
+.track-item {
+  background: #53BDFF !important;
+}
+
+html,
+body {
+  background: #53BDFF !important;
+}
+
+#audioCanvas {
+  opacity: 0.9 !important;
+}
+
+.voice-title,
+.now-playing,
+.play-button,
+.current-title,
+.current-sub,
+.current-time,
+.panel-toggle,
+.panel-header,
+.panel-header a,
+.track-item,
+.track-title,
+.track-meta,
+.track-age,
+.track-arrow {
+  color: #FF5874 !important;
+}
+
+.interview-panel,
+.panel-toggle,
+.panel-header,
+.track-item,
+.track-portrait {
+  border-color: rgba(210, 65, 89, 0.72) !important;
+}
+
+.panel-toggle:hover {
+  background: #FF5874 !important;
+  color: #53BDFF !important;
+}
+/* ===== FINAL PATCH: white background + blue title ===== */
+
+html,
+body,
+.voice-page,
+.visual-stage {
+  background: #ffffff !important;
+}
+
+.voice-title {
+  color: #53BDFF !important;
+}
+/* ===== FINAL PATCH: blue player text/buttons ===== */
+
+.play-button,
+.current-title,
+.current-time,
+.now-playing {
+  color: #53BDFF !important;
+}
+
+.play-button:hover {
+  color: #53BDFF !important;
+}
+  
+/* ===== FINAL: 3D text effect, keep original colors ===== */
+
+.voice-title,
+.voice-close,
+.now-playing,
+.play-button,
+.current-title,
+.current-time,
+.panel-toggle,
+.panel-header,
+.panel-header a,
+.panel-esc,
+.track-item,
+.track-title,
+.track-meta,
+.track-age,
+.track-arrow {
+  font-weight: 900 !important;
+  letter-spacing: -0.05em !important;
+
+  /* 不改文字本身 color，只加黑色立体阴影 */
+  -webkit-text-stroke: 0.7px #101010 !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 0.75),
+    0 0 7px rgba(255, 255, 255, 0.35) !important;
+}
+
+/* 播放三角形也跟着立体，但不改变蓝色 */
+.play-button {
+  line-height: 1 !important;
+}
+
+/* 图片和边框不加立体字效果 */
+.track-portrait {
+  text-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+}
+
+  
+/* ===== FINAL: top-left rotating SMART 3D logo ===== */
+
+.voice-logo {
+  width: 300px !important;
+  height: 170px !important;
+  margin-top: -34px !important;
+  margin-left: -42px !important;
+  pointer-events: none !important;
+  position: relative !important;
+  z-index: 120 !important;
+}
+
+.voice-logo-model {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  background: transparent !important;
+  --poster-color: transparent;
+}
+
+/* 不再显示左上角文字标题，换成 3D SMART */
+.voice-title {
+  display: none !important;
+}
+
+/* ===== PATCH: hover motion like index menu ===== */
+
+/* 给 interview 页面所有可点击文字加动效 */
+.panel-toggle,
+.panel-esc,
+.play-button,
+.track-item,
+.track-title,
+.track-meta,
+.track-arrow {
+  transition:
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    text-shadow 0.25s ease,
+    color 0.25s ease,
+    background-color 0.25s ease,
+    opacity 0.25s ease !important;
+
+  will-change: transform !important;
+}
+
+/* LIST 标签：像 index 按钮一样弹起来 */
+.panel-toggle:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  background: #FF5874 !important;
+  color: #53BDFF !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 88, 116, 0.95),
+    0 0 18px rgba(83, 189, 255, 0.75) !important;
+}
+
+/* ESC 也加同样的弹起 */
+.panel-esc:hover {
+  text-decoration: none !important;
+  transform: translateY(-3px) scale(1.05) !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 88, 116, 0.95),
+    0 0 18px rgba(83, 189, 255, 0.75) !important;
+}
+
+/* 播放按钮 */
+.play-button:hover {
+  transform: translateY(-3px) scale(1.08) !important;
+  color: #53BDFF !important;
+
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(83, 189, 255, 0.95),
+    0 0 18px rgba(255, 88, 116, 0.75) !important;
+}
+
+/* 采访列表每一条：扫过时整条轻微右移 */
+.track-item:hover {
+  transform: translateX(-6px) scale(1.015) !important;
+  background: rgba(255, 88, 116, 0.16) !important;
+}
+
+/* 采访名字和箭头扫过时阴影变重 */
+.track-item:hover .track-title,
+.track-item:hover .track-meta,
+.track-item:hover .track-arrow {
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    3px 3px 0 #101010,
+    4px 4px 0 #101010,
+    5px 5px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 1),
+    0 0 8px rgba(255, 88, 116, 0.95),
+    0 0 18px rgba(83, 189, 255, 0.75) !important;
+}
+
+/* 当前正在选中的采访，不要被 hover 挤得太夸张 */
+.track-item.is-active:hover {
+  transform: translateX(-4px) scale(1.01) !important;
+}
+/* ===== QQ AUDIO-SYNC CHAT BUBBLES: CLEAN VERSION ===== */
+
+.qq-chat {
+  margin-top: 30px;
+  width: min(760px, 62vw);
+  height: 56vh;
+  max-height: 56vh;
+  overflow-y: auto;
+  overflow-x: visible;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding-right: 18px;
+  padding-bottom: 30px;
+
+  pointer-events: none;
+  scroll-behavior: smooth;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+}
+
+/* 隐藏滚动条，但保留自动上滚 */
+.qq-chat {
+  margin-top: 30px;
+  width: min(760px, 62vw);
+  height: 56vh;
+  max-height: 56vh;
+
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  padding-right: 18px;
+  padding-bottom: 30px;
+
+  pointer-events: none;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+}
+
+/* 现在所有气泡都当作“受访者说话”，不再分我/他 */
+.qq-message,
+.qq-message.from-them,
+.qq-message.from-me {
+  align-self: flex-start;
+  background: #53BDFF;
+  color: #101010;
+}
+
+/* 去掉黑色小尾巴 */
+.qq-message::after {
+  display: none !important;
+  content: none !important;
+}
+
+.qq-name {
+  margin-bottom: 8px;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+  opacity: 0.72;
+}
+
+.qq-text {
+  white-space: pre-wrap;
+  display: inline;
+}
+
+.qq-typed {
+  white-space: pre-wrap;
+}
+.qq-cursor {
+  display: inline-block !important;
+
+  width: 2px !important;
+  height: 1.12em !important;
+
+  margin-left: 3px !important;
+  vertical-align: -0.14em !important;
+
+  background: currentColor !important;
+  border-radius: 2px !important;
+
+  animation: qqCursorBlink 0.82s steps(1, end) infinite !important;
+}
+
+.qq-cursor::after {
+  content: none !important;
+  display: none !important;
+}
+.qq-cursor.is-hidden {
+  display: none !important;
+}
+
+
+@keyframes qqBubbleIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes qqCursorBlink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ===== PATCH: hide voice title + remove bubble names + lighter font ===== */
+
+.current-title {
+  display: none !important;
+}
+
+.qq-name {
+  display: none !important;
+}
+
+.qq-message {
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+}
+
+.qq-text {
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+}
+/* ===== FINAL FIX: scrollable QQ chat history ===== */
+
+.qq-chat {
+  margin-top: 30px !important;
+  width: min(760px, 62vw) !important;
+  height: 56vh !important;
+  max-height: 56vh !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+
+  padding-right: 18px !important;
+  padding-bottom: 30px !important;
+
+  pointer-events: auto !important;
+  scroll-behavior: smooth !important;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+}
+
+/* 隐藏滚动条，但仍然可以滚动查看上面的聊天记录 */
+.qq-chat::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.qq-chat {
+  scrollbar-width: none !important;
+}
+
+/* 恢复气泡本体 */
+.qq-message {
+  position: relative !important;
+  width: fit-content !important;
+  max-width: 720px !important;
+
+  padding: 14px 20px !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+
+  background: #53BDFF !important;
+  color: #101010 !important;
+
+  font-size: 20px !important;
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+
+  opacity: 1 !important;
+  transform: none !important;
+
+  box-shadow: none !important;
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+}
+
+.qq-message,
+.qq-message.from-them,
+.qq-message.from-me {
+  align-self: flex-start !important;
+  background: #53BDFF !important;
+  color: #101010 !important;
+}
+
+.qq-message::after {
+  display: none !important;
+  content: none !important;
+}
+
+.qq-name {
+  display: none !important;
+}
+
+.qq-text {
+  display: inline !important;
+  white-space: pre-wrap !important;
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+}
+
+.qq-typed {
+  white-space: pre-wrap !important;
+}
+
+.qq-cursor {
+  display: inline-block !important;
+  width: 2px !important;
+  height: 1.12em !important;
+  margin-left: 3px !important;
+  vertical-align: -0.14em !important;
+  background: currentColor !important;
+  border-radius: 2px !important;
+  animation: qqCursorBlink 0.82s steps(1, end) infinite !important;
+}
+
+.qq-cursor.is-hidden {
+  display: none !important;
+}
+/* ===== FINAL FIX: chat history scroll but no hard top cut ===== */
+
+.qq-chat {
+  margin-top: -80px !important;
+  width: min(860px, 68vw) !important;
+
+  height: 72vh !important;
+  max-height: 72vh !important;
+
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+
+  padding-top: 120px !important;
+  padding-right: 24px !important;
+  padding-bottom: 90px !important;
+
+  pointer-events: auto !important;
+  scroll-behavior: smooth !important;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+
+  scrollbar-width: none !important;
+}
+
+.qq-chat::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.qq-message {
+  flex-shrink: 0 !important;
+  max-width: 820px !important;
+}
+/* ===== FINAL: full-height QQ chat, no inner crop ===== */
+
+/* 让 now-playing 不再只是中间一小块，而是撑满整个左侧画布 */
+.now-playing {
+  top: 0 !important;
+  bottom: 0 !important;
+  height: 100vh !important;
+  transform: none !important;
+
+  align-items: center !important;
+}
+
+/* 中间放气泡的这一列撑满屏幕高度 */
+.now-playing > div:nth-child(2) {
+  height: 100vh !important;
+  min-height: 100vh !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+
+/* 聊天记录从屏幕上方到屏幕下方，不再是中间的小框 */
+.qq-chat {
+  margin-top: 0 !important;
+
+  width: min(900px, 70vw) !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+
+  overflow-y: auto !important;
+  overflow-x: visible !important;
+
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+
+  padding-top: 86px !important;
+  padding-right: 24px !important;
+  padding-bottom: 90px !important;
+
+  pointer-events: auto !important;
+  scroll-behavior: smooth !important;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+
+  scrollbar-width: none !important;
+}
+
+/* 隐藏滚动条，但保留滚轮查看聊天记录 */
+.qq-chat::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* 每个气泡不要被 flex 压扁 */
+.qq-message {
+  flex-shrink: 0 !important;
+  max-width: 850px !important;
+}
+/* ===== FIX 01: keep time visible ===== */
+
+/* ===== FIX: time aligned with play / pause button ===== */
+
+.current-time {
+  position: fixed !important;
+
+  right: 470px !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+
+  z-index: 300 !important;
+
+  width: auto !important;
+  min-width: 78px !important;
+
+  text-align: right !important;
+  pointer-events: none !important;
+
+  color: #53BDFF !important;
+  line-height: 1 !important;
+}
+
+body.panel-collapsed .current-time {
+  right: 48px !important;
+}
+/* ===== FIX 02: active interview item should not be cut ===== */
+
+.track-list {
+  scroll-padding-top: 110px !important;
+  scroll-padding-bottom: 120px !important;
+}
+
+.track-item {
+  scroll-margin-top: 110px !important;
+  scroll-margin-bottom: 120px !important;
+}
+/* ===== FIX 03: remove moving audio visualizer ===== */
+
+#audioCanvas {
+  display: none !important;
+}
+
+.visual-stage {
+  background: #ffffff !important;
+}
+/* ===== FINAL: interview dynamic background base ===== */
+
+/* 不要再让 html/body/voice-page 显示旧背景 */
+html,
+body,
+.voice-page {
+  background-image: none !important;
+  background-color: #000000 !important;
+}
+
+/* 默认先显示第一个人的背景，避免闪出旧的 interview-bg.jpg */
+.visual-stage {
+  background-image: url("interview-backgrounds/bg-01.jpg") !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-color: #000000 !important;
+}
+
+/* 聊天区域保持透明，让背景图露出来 */
+.qq-chat {
+  background: transparent !important;
+}
+
+/* 右侧 LIST 继续保持蓝色 */
+.interview-panel,
+.panel-toggle,
+.track-item {
+  background: #53BDFF !important;
+}
+/* ===== FINAL: white chat bubbles + colorful text ===== */
+
+.qq-message,
+.qq-message.from-them,
+.qq-message.from-me {
+  background: #ffffff !important;
+  color: #101010 !important;
+
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.16),
+    2px 2px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 彩色文字 */
+.qq-text,
+.qq-typed {
+  background: linear-gradient(
+    90deg,
+    #ff3b6b,
+    #ff9f1c,
+    #ffe600,
+    #34d399,
+    #38bdf8,
+    #8b5cf6,
+    #ff3b6b
+  ) !important;
+
+  background-size: 300% 100% !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+
+  animation: qqRainbowText 5s linear infinite !important;
+}
+
+/* 打字光标不要跟着透明，单独设成粉色 */
+.qq-cursor {
+  background: #ff3b6b !important;
+  color: #ff3b6b !important;
+}
+
+/* 彩色文字流动 */
+@keyframes qqRainbowText {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 300% 50%;
+  }
+}
+/* ===== FINAL: super colorful rainbow chat text ===== */
+
+.qq-message,
+.qq-message.from-them,
+.qq-message.from-me {
+  background: #ffffff !important;
+  color: #101010 !important;
+
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.16),
+    2px 2px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 五颜六色：红橙黄绿青蓝紫反复出现 */
+.qq-text,
+.qq-typed {
+  background-image: repeating-linear-gradient(
+    90deg,
+    #ff2b5f 0px,
+    #ff2b5f 32px,
+
+    #ff8a00 32px,
+    #ff8a00 64px,
+
+    #ffe600 64px,
+    #ffe600 96px,
+
+    #22c55e 96px,
+    #22c55e 128px,
+
+    #00d5ff 128px,
+    #00d5ff 160px,
+
+    #3b82f6 160px,
+    #3b82f6 192px,
+
+    #a855f7 192px,
+    #a855f7 224px
+  ) !important;
+
+  background-size: 224px 100% !important;
+  background-position: 0 0 !important;
+
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+
+  animation: qqRainbowTextMove 2.8s linear infinite !important;
+}
+
+/* 光标单独用亮粉色，不要透明 */
+.qq-cursor {
+  background: #ff2b5f !important;
+  color: #ff2b5f !important;
+  -webkit-text-fill-color: #ff2b5f !important;
+}
+
+/* 让彩色慢慢流动 */
+@keyframes qqRainbowTextMove {
+  0% {
+    background-position: 0px 0;
+  }
+
+  100% {
+    background-position: 224px 0;
+  }
+}
+/* ===== FINAL: smooth colorful gradient chat text ===== */
+
+.qq-message,
+.qq-message.from-them,
+.qq-message.from-me {
+  background: #ffffff !important;
+  color: #101010 !important;
+
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.16),
+    2px 2px 0 rgba(0, 0, 0, 0.18) !important;
+}
+
+/* 柔和七彩渐变，不要硬切色块 */
+.qq-text,
+.qq-typed {
+  background-image: linear-gradient(
+    90deg,
+    #ff2b5f 0%,
+    #ff7a00 14%,
+    #ffd600 28%,
+    #31d843 42%,
+    #00d5ff 56%,
+    #3b82f6 70%,
+    #a855f7 84%,
+    #ff2b5f 100%
+  ) !important;
+
+  background-size: 120% 100% !important;
+  background-position: 0% 50% !important;
+
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+
+  animation: qqSmoothRainbow 4s ease-in-out infinite alternate !important;
+}
+
+/* 光标保持清楚 */
+.qq-cursor {
+  background: #ff2b5f !important;
+  color: #ff2b5f !important;
+  -webkit-text-fill-color: #ff2b5f !important;
+}
+
+/* 渐变轻轻流动 */
+@keyframes qqSmoothRainbow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  100% {
+    background-position: 100% 50%;
+  }
+}
+/* ===== FINAL: language toggle beside Interview List ===== */
+
+.panel-title-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 18px !important;
+}
+
+.lang-toggle {
+  border: 0 !important;
+  background: transparent !important;
+  color: #FF5874 !important;
+
+  font-family: inherit !important;
+  font-size: 15px !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.05em !important;
+
+  cursor: pointer !important;
+  padding: 0 !important;
+
+  -webkit-text-stroke: 0.7px #101010 !important;
+  text-shadow:
+    1px 1px 0 #101010,
+    2px 2px 0 #101010,
+    0 -1px 0 rgba(255, 255, 255, 0.75),
+    0 0 7px rgba(255, 255, 255, 0.35) !important;
+}
+
+.lang-toggle:hover {
+  transform: translateY(-3px) scale(1.05) !important;
+  color: #53BDFF !important;
+}
+/* ===== FINAL: center language toggle, hide Interview List ===== */
+
+/* 1. 取消 Interview List 文字 */
+.panel-title-row > span {
+  display: none !important;
+}
+
+/* 2. 让顶部栏可以精准定位 */
+.panel-header {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+}
+
+/* 3. 把中英文按钮放到蓝色顶部栏的正中间 */
+.panel-title-row {
+  position: absolute !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  height: 90px !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 0 !important;
+  pointer-events: none !important;
+}
+
+/* 4. 中英文按钮：字号和 LIST 一样大 */
+.lang-toggle {
+  pointer-events: auto !important;
+
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+
+  border: 0 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  color: #FF5874 !important;
+}
+
+/* 防止点击后出现蓝色/黑色小框 */
+.lang-toggle:focus,
+.lang-toggle:focus-visible,
+.lang-toggle:active {
+  outline: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* 5. ESC 保持在右边，不被居中的语言按钮影响 */
+.panel-esc {
+  position: relative !important;
+  z-index: 5 !important;
+}
+/* ===== FINAL: active interview item color ===== */
+
+/* 正在播放 / 当前选中的采访条目 */
+.track-item.is-active {
+  background: #87EF00 !important;
+}
+
+/* 鼠标扫过当前播放项时，也保持绿色 */
+.track-item.is-active:hover {
+  background: #87EF00 !important;
+}
+
+/* 当前播放项里的文字继续保持原来的红色立体字 */
+.track-item.is-active .track-title,
+.track-item.is-active .track-meta,
+.track-item.is-active .track-age,
+.track-item.is-active .track-arrow {
+  color: #FF5874 !important;
+}
+
+/* ===== FINAL: no-black-flash layered interview backgrounds ===== */
+
+.visual-stage {
+  background-image: none !important;
+  background-color: #000000 !important;
+  position: absolute !important;
+  overflow: hidden !important;
+}
+
+/* 两层背景图，交替淡入淡出 */
+.stage-bg {
+  position: absolute !important;
+  inset: 0 !important;
+
+  z-index: 0 !important;
+  pointer-events: none !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+
+  opacity: 0 !important;
+  transition: opacity 0.45s ease !important;
+
+  transform: translateZ(0) !important;
+  will-change: opacity !important;
+}
+
+/* 默认第一张背景 */
+
+
+/* 正在显示的背景 */
+.stage-bg.is-visible {
+  opacity: 1 !important;
+}
+
+/* 保证聊天、按钮、时间在背景上面 */
+.now-playing {
+  z-index: 5 !important;
+}
+
+.voice-header {
+  z-index: 120 !important;
+}
+
+/* ===== FINAL: no-black-flash layered interview backgrounds ===== */
+
+.visual-stage {
+  background-image: none !important;
+  background-color: #000000 !important;
+  position: absolute !important;
+  overflow: hidden !important;
+}
+
+.stage-bg {
+  position: absolute !important;
+  inset: 0 !important;
+
+  z-index: 0 !important;
+  pointer-events: none !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+
+  opacity: 0 !important;
+  transition: opacity 0.45s ease !important;
+
+  transform: translateZ(0) !important;
+  will-change: opacity !important;
+}
+
+
+.stage-bg.is-visible {
+  opacity: 1 !important;
+}
+
+.now-playing {
+  z-index: 5 !important;
+}
+
+.voice-header {
+  z-index: 120 !important;
+}
+/* ===== FINAL: interview top buttons with icons + Chinese ===== */
+
+/* LIST / 语言 中EN / 返回 Back：图标在左，文字在右 */
+.interview-icon-button {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 8px !important;
+  white-space: nowrap !important;
+}
+
+/* interview 顶部按钮图标 */
+.interview-ui-icon {
+  width: 24px !important;
+  height: 24px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  transform: translateY(-1px) !important;
+
+  filter:
+    drop-shadow(1px 1px 0 #101010)
+    drop-shadow(0 0 5px rgba(255, 242, 0, 0.45)) !important;
+
+  pointer-events: none !important;
+}
+
+/* 防止按钮文字换行 */
+.panel-toggle span,
+.lang-toggle span,
+.panel-esc span {
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+
+/* LIST 按钮变宽一点，不然“图标 + 列表 LIST”会挤 */
+.panel-toggle {
+  width: 150px !important;
+  left: -150px !important;
+
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+
+  justify-content: flex-start !important;
+  gap: 10px !important;
+}
+
+body.panel-collapsed .panel-toggle {
+  left: -150px !important;
+}
+
+/* 中英文按钮居中，但内部是图标 + 文字 */
+.lang-toggle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+/* 返回 Back 保持在右边 */
+.panel-esc {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+
+/* hover 的时候图标也一起弹一下 */
+.interview-icon-button:hover .interview-ui-icon {
+  transform: translateY(-3px) scale(1.05) !important;
+
+  filter:
+    drop-shadow(2px 2px 0 #101010)
+    drop-shadow(0 0 8px rgba(255, 242, 0, 0.85))
+    drop-shadow(0 0 14px rgba(83, 189, 255, 0.65)) !important;
+}
+/* ===== FINAL FIX: interview top icon buttons layout ===== */
+
+/* 右侧顶部栏重新排版 */
+.panel-header {
+  position: relative !important;
+  height: 90px !important;
+  padding: 0 22px !important;
+
+  display: block !important;
+
+  background: #53BDFF !important;
+  border-bottom: 1px solid rgba(210, 65, 89, 0.65) !important;
+}
+
+/* LIST 按钮：图标 + 列表 LIST 永远保留 */
+.panel-toggle {
+  width: 150px !important;
+  height: 90px !important;
+
+  left: -150px !important;
+  right: auto !important;
+  top: 0 !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+
+  gap: 10px !important;
+  padding-left: 22px !important;
+  padding-right: 16px !important;
+
+  white-space: nowrap !important;
+}
+
+body.panel-collapsed .panel-toggle {
+  left: -150px !important;
+  right: auto !important;
+}
+
+/* 语言按钮放在蓝色栏真正中间 */
+.panel-title-row {
+  position: absolute !important;
+
+  left: 50% !important;
+  top: 0 !important;
+  right: auto !important;
+
+  width: auto !important;
+  height: 90px !important;
+
+  transform: translateX(-50%) !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  pointer-events: none !important;
+}
+
+/* 隐藏 Interview List 那个旧标题 */
+.panel-title-row > span {
+  display: none !important;
+}
+
+/* 语言 中 / EN */
+.lang-toggle {
+  pointer-events: auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+}
+
+/* 返回 Back 固定在右边，别和语言挤在一起 */
+.panel-esc {
+  position: absolute !important;
+
+  right: 22px !important;
+  top: 0 !important;
+
+  height: 90px !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+
+  white-space: nowrap !important;
+  text-decoration: none !important;
+}
+
+/* 三个按钮的图标统一小一点 */
+.interview-ui-icon {
+  width: 22px !important;
+  height: 22px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  transform: translateY(-1px) !important;
+  pointer-events: none !important;
+}
+
+/* 三个按钮的文字不换行 */
+.panel-toggle span,
+.lang-toggle span,
+.panel-esc span {
+  display: inline-block !important;
+  white-space: nowrap !important;
+}
+/* ===== FINAL FIX: truly center interview language button ===== */
+
+/* 右侧蓝色顶部栏改成三栏布局 */
+.panel-header {
+  position: relative !important;
+  height: 90px !important;
+  padding: 0 22px !important;
+
+  display: grid !important;
+  grid-template-columns: 1fr auto 1fr !important;
+  align-items: center !important;
+
+  background: #53BDFF !important;
+  border-bottom: 1px solid rgba(210, 65, 89, 0.65) !important;
+}
+
+/* 中间语言按钮，不再用 absolute 定位 */
+.panel-title-row {
+  position: static !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+
+  width: auto !important;
+  height: auto !important;
+
+  transform: none !important;
+
+  grid-column: 2 !important;
+  justify-self: center !important;
+  align-self: center !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  pointer-events: none !important;
+}
+
+/* 继续隐藏 Interview List 旧标题 */
+.panel-title-row > span {
+  display: none !important;
+}
+
+/* 语言按钮本体 */
+.lang-toggle {
+  pointer-events: auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+
+  padding: 0 !important;
+  margin: 0 !important;
+
+  border: 0 !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
+
+  font-size: 18px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+
+  white-space: nowrap !important;
+}
+
+/* 返回 Back 放到右侧第三栏 */
+.panel-esc {
+  position: static !important;
+  right: auto !important;
+  top: auto !important;
+
+  grid-column: 3 !important;
+  justify-self: end !important;
+  align-self: center !important;
+
+  height: auto !important;
+
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  gap: 7px !important;
+
+  white-space: nowrap !important;
+  text-decoration: none !important;
+}
+
+/* 图标统一大小 */
+.interview-ui-icon {
+  width: 22px !important;
+  height: 22px !important;
+
+  object-fit: contain !important;
+  display: block !important;
+  flex-shrink: 0 !important;
+
+  transform: translateY(-1px) !important;
+  pointer-events: none !important;
+}
+
+
+/* ===== FINAL: keyword-only rainbow highlights — same font weight ===== */
+/* 普通文字保持黑色，并且保留原本气泡里的字体、字号、字重 */
+.qq-text,
+.qq-typed,
+.qq-normal {
+  background: none !important;
+  background-image: none !important;
+  background-size: auto !important;
+  background-position: 0 0 !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+
+  color: #101010 !important;
+  -webkit-text-fill-color: #101010 !important;
+
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+  animation: none !important;
+}
+
+/* 关键词 / 关键句：只变颜色，不变字体、不变粗细 */
+.qq-highlight {
+  display: inline !important;
+
+  font-family: inherit !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  font-style: inherit !important;
+
+  -webkit-text-stroke: 0 !important;
+  text-shadow: none !important;
+
+  background-image: linear-gradient(
+    90deg,
+    #ff2b5f 0%,
+    #ff7a00 14%,
+    #ffd600 28%,
+    #31d843 42%,
+    #00d5ff 56%,
+    #3b82f6 70%,
+    #a855f7 84%,
+    #ff2b5f 100%
+  ) !important;
+
+  background-size: 120% 100% !important;
+  background-position: 0% 50% !important;
+  background-clip: text !important;
+  -webkit-background-clip: text !important;
+
+  color: transparent !important;
+  -webkit-text-fill-color: transparent !important;
+
+  animation: qqSmoothRainbow 4s ease-in-out infinite alternate !important;
+}
+
+.qq-cursor {
+  background: #ff2b5f !important;
+  color: #ff2b5f !important;
+  -webkit-text-fill-color: #ff2b5f !important;
+}
+
+  </style>
+</head>
+
+<body>
+  <main class="voice-page">
+    <header class="voice-header">
+      <div class="voice-logo" aria-label="SMART 3D logo">
+        <model-viewer
+          class="voice-logo-model"
+          src="./models/smart.glb.glb"
+          alt="SMART 3D logo"
+          interaction-prompt="none"
+          disable-zoom
+          environment-image="neutral"
+          shadow-intensity="0"
+          exposure="0.9"
+          camera-orbit="0deg 75deg 155%"
+          field-of-view="26deg"
+        ></model-viewer>
+      </div>
+
+      <a class="voice-close" href="index.html?screen=model">X ESC</a>
+    </header>
+
+    <section class="visual-stage">
+  <div class="stage-bg stage-bg-a is-visible" id="stageBgA" style="background-image: url('interview-backgrounds/bg-01.jpg');"></div>
+  <div class="stage-bg stage-bg-b" id="stageBgB"></div>
+
+  <canvas id="audioCanvas"></canvas>
+
+      <div class="now-playing">
+        <button class="play-button" id="mainPlayBtn" type="button">▶</button>
+
+        <div>
+          <div class="current-title" id="currentTitle">
+            他们不是图像<br>
+            They were not images
+          </div>
+          <div class="current-sub" id="currentSub">
+            他们也有声音 / They had voices too
+          </div>
+          <div class="qq-chat" id="qqChat"></div>
+        </div>
+
+        <div class="current-time" id="currentTime">00:00</div>
+      </div>
+    </section>
+
+    <aside class="interview-panel" id="interviewPanel">
+  <button class="panel-toggle interview-icon-button" id="panelToggle" type="button">
+  <img class="interview-ui-icon" src="./icons/icon-list.png" alt="">
+  <span>列表 LIST</span>
+</button>
+
+  <div class="panel-header">
+  <div class="panel-title-row">
+    <span>Interview List</span>
+    <button class="lang-toggle interview-icon-button" id="langToggle" type="button">
+  <img class="interview-ui-icon" src="./icons/icon-lang.png" alt="">
+  <span>中 / EN</span>
+</button>
+  </div>
+
+  <a class="panel-esc interview-icon-button" href="index.html?screen=model">
+  <img class="interview-ui-icon" src="./icons/icon-back.png" alt="">
+  <span>返回 Back</span>
+</a>
+</div>
+      <div class="track-list" id="trackList"></div>
+    </aside>
+
+    <audio id="audioPlayer" preload="auto" crossorigin="anonymous"></audio>
+  </main>
+
+  <script>
+      const interviews = [
+  {
+  number: "01",
+  name: "影儿",
+  age: "13岁外出打工",
+  portrait: "interview-portraits/interview-02.jpg",
+  src: "audio/interview-02.mp3",
+  bg: "interview-backgrounds/bg-01.jpg",
+  visual: "rings",
+  messages: [
+  {
+    start: 0.0,
+    end: 12.7,
+    text: "我没有一种存在感，但是玩这个就会有人注意到你，就会有人去关心，有一些人他就会用大哥的语气跟你说小妹妹玩这个没前途的，就会去关心你啊。",
+    highlights: ["玩这个就会有人注意到你", "我没有一种存在感", "就会有人注意到你", "就会有人去关心", "玩这个没前途", "就会去关心你", "关心你"],
+    textEn: "I didn’t have any sense of presence, but when I played with this style, people would notice me and care about me. Some people would talk to me in this older-brother tone, saying, little sister, there’s no future in playing with this, and that was also a kind of care."
+  },
+  {
+    start: 13.0,
+    end: 19.7,
+    text: "有时候玩这个也有种私心，得到一种关心，有一种关爱。",
+    highlights: ["得到一种关心", "有一种关爱"],
+    textEn: "Sometimes there was also a selfish reason for playing with this style: I wanted to receive some care, some affection."
+  },
+  {
+    start: 20.0,
+    end: 32.7,
+    text: "因为平时如果你是正常人，肯定没有这些，谁会多余的说看到一个正常人也去安慰你，你不正常的样子别人才会去，就大部分人都会去关心你会说:",
+    highlights: ["正常人", "不正常", "关心你"],
+    textEn: "Because normally, if you look like a normal person, you definitely don’t get these things. Who would go out of their way to comfort someone who looks normal? Only when you look abnormal would people come over; most people would care and say:"
+  },
+  {
+    start: 33.0,
+    end: 40.0,
+    text: "这个人是不是经历了一些什么不开心的事情，才会变成这样？",
+    highlights: ["是不是经历了一些什么不开心的事情", "不开心的事情"],
+    textEn: "Did this person go through something unhappy, and that’s why they became like this?"
+  }
+]
+  },
+  {
+  number: "02",
+    name: "罗福兴",
+    age: "14岁外出打工",
+    portrait: "interview-portraits/interview-01.jpg",
+    src: "audio/interview-01.mp3",
+    bg: "interview-backgrounds/bg-02.jpg",
+    visual: "waves",
+    messages: [
+      {
+        start: 2.0,
+        end: 8.7,
+        text: "虽然城市感觉特别乱，但是反正感觉有很多机会给我。",
+        highlights: ["城市感觉特别乱"]
+      },
+      {
+        start: 9.0,
+        end: 13.7,
+        text: "机会比农村多，总是有新鲜的东西发生嘛。",
+        highlights: ["农村"]
+      },
+      {
+        start: 14.0,
+        end: 18.7,
+        text: "我在农村的话，感觉每天过着同样的事情，就是玩着同样的事情。",
+        highlights: ["农村"]
+      },
+      {
+        start: 19.0,
+        end: 24.8,
+        text: "除了去水里面摸鱼、放羊、放牛，没啥搞的了，所以有种特别想逃离农村。",
+        highlights: ["逃离农村", "农村"]
+      }
+    ]
+},
+{
+  number: "03",
+  name: "安晓惠",
+  age: "12岁外出打工",
+  portrait: "interview-portraits/interview-03.jpg",
+  src: "audio/interview-03.mp3",
+  bg: "interview-backgrounds/bg-03.jpg",
+  visual: "bars",
+  messages: [
+    {
+      start: 0.0,
+      end: 1.8,
+      text: "我不是扎着两个小揪揪嘛？"
+    },
+    {
+      start: 2.0,
+      end: 2.8,
+      text: "当时很小嘛",
+      highlights: ["当时很小嘛", "很小嘛"]
+    },
+    {
+      start: 3.0,
+      end: 29.7,
+      text: "我堂姐说，她说你这个不要这样扎了，你这样扎的厂里不要你的，你太小，你身份证也没有，她说你再扎这个别人就看着你就是特别小的那种，我堂姐就把我改变了一下，就进去带我们去面试嘛，厂里面那个人事部的说，虽然说是你出来的比较早，但是像你这个年龄出来的已经是太小了，他还问我说你们那里是太穷了吗？",
+      highlights: ["你们那里是太穷了吗", "厂里不要你的", "身份证也没有", "特别小的那种", "出来的比较早", "已经是太小了", "厂里不要你", "你太小", "年龄", "厂"]
+    },
+    {
+      start: 30.0,
+      end: 31.7,
+      text: "就这么小就把他赶出来打工了，就这个意思。",
+      highlights: ["就这么小就把他赶出来打工了"]
+    },
+    {
+      start: 32.0,
+      end: 48.7,
+      text: "是啊，我们那个带班的说如果不要这个的话，我们这一帮人都不进这个厂，刚好那个时候他那个厂又要缺人，就是很赶货的那种情况下，他就说，那就说你们人那么多，是不是就为了一个就全部不进了？",
+      highlights: ["缺人", "赶货", "厂"]
+    },
+    {
+      start: 49.0,
+      end: 61.0,
+      text: "也不值得。要就要嘛，以后他自己做的了就先做着，如果说做不了的话，让他就是开除的，这个意思就当时就要了的。",
+      highlights: ["开除"]
+    }
+  ]
+},
+{
+  number: "04",
+  name: "偉哈哈",
+  age: "14岁外出打工",
+  portrait: "interview-portraits/interview-04.jpg",
+  src: "audio/interview-04.mp3",
+  bg: "interview-backgrounds/bg-04.jpg",
+  visual: "rays",
+  messages: [
+    {
+      start: 0.0,
+      end: 5.7,
+      text: "别人搞3箱，我就可以搞6箱，一箱差不多五六百个吧。"
+    },
+    {
+      start: 6.0,
+      end: 30.7,
+      text: "他们都觉得我干的好像有点快，就让我去搞，是那种锈了可以擦掉那种布，裹的时候，那些会裹多了会把这个皮磨掉，每天都把我手摸那些指甲都摸不见了。",
+      highlights: ["每天都把我手摸那些指甲都摸不见了", "皮磨掉", "锈了"]
+    },
+    {
+      start: 31.0,
+      end: 36.7,
+      text: "每天都是加班，加到11点左右。",
+      highlights: ["加到11点左右", "每天都是加班"]
+    },
+    {
+      start: 37.0,
+      end: 54.7,
+      text: "起床都是6点钟开始起，就是7点半开始上班了，我感觉好累，我真坚持不下来，我就跟他们说了几次，我就说我不想做了，你们能不能结账给我？",
+      highlights: ["我真坚持不下来", "我感觉好累", "我不想做了", "能不能结账", "6点钟", "7点半", "上班"]
+    },
+    {
+      start: 55.0,
+      end: 74.7,
+      text: "他说你才来了两三个月就不结账，我就每次走到那个厂我就不想进去，但是不进去又没钱，没有饭吃嘛，还是不知不觉的就走进去了。",
+      highlights: ["不想进去", "没有饭吃", "不结账", "没钱", "厂"]
+    }
+  ]
+},
+{
+  number: "05",
+  name: "钟馗",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-05.jpg",
+  src: "audio/interview-05.mp3",
+  bg: "interview-backgrounds/bg-05.jpg",
+  visual: "waves",
+  messages: [
+    {
+      start: 0.0,
+      end: 22.7,
+      text: "那时候我第一年出去的时候，小老板只有三台机械，就跟我两个表哥在那里给他操作，他也属于是私人加工，去大厂里面接货出来的脏又累又没有安全保障，这手这里还被那个机器压到什么都不赔的，就连生活费他都不赔。",
+      highlights: ["脏又累又没有安全保障", "生活费他都不赔", "被那个机器压", "什么都不赔", "私人加工"]
+    },
+    {
+      start: 23.0,
+      end: 25.7,
+      text: "你就干了一个月没干活嘛。",
+      highlights: ["干活"]
+    },
+    {
+      start: 26.0,
+      end: 34.7,
+      text: "就在那里睡，扯出来的铁丝给绞到手，这筋都断了，包了一个月，反正后来去找老板。",
+      highlights: ["铁丝给绞到手", "筋都断了"]
+    },
+    {
+      start: 35.0,
+      end: 40.7,
+      text: "老板说你做不做，反正你又小，你出去找不到，那时候出去才1000多块钱。",
+      highlights: ["做不做", "你又小", "找不到"]
+    },
+    {
+      start: 41.0,
+      end: 47.7,
+      text: "1000还算高的。有的人说去劳动局告，劳动局是什么我都不知道。",
+      highlights: ["劳动局告", "劳动局"]
+    },
+    {
+      start: 48.0,
+      end: 52.0,
+      text: "第一年出去很单纯的。",
+      highlights: ["很单纯的"]
+    }
+  ]
+},
+  {
+  number: "06",
+  name: "葉樂希",
+  age: "16岁外出打工",
+  portrait: "interview-portraits/interview-06.jpg",
+  src: "audio/interview-06.mp3",
+  bg: "interview-backgrounds/bg-06.jpg",
+  visual: "dots",
+  messages: [
+    {
+      start: 0.0,
+      end: 32.7,
+      text: "以前除了会打工什么都不会，那时候我去看个电视，我都可以看通宵，那时候我可以几个月不出那个厂门口，因为我不需要出去，我不需要跟外界的人接触，我就下班了就回宿舍，该干嘛就干嘛，你说厂门口的话，除了去买一个女孩子用的生理期用的卫生巾以外，其他都不会出去，就待在厂里面都可以的，那时候。怎么用银行卡呀？",
+      highlights: ["以前除了会打工什么都不会", "几个月不出那个厂门口", "不需要跟外界的人接触", "不需要出去", "回宿舍", "厂门口", "厂里面", "都不会"]
+    },
+    {
+      start: 33.0,
+      end: 33.8,
+      text: "怎么坐公交车？"
+    },
+    {
+      start: 34.0,
+      end: 45.0,
+      text: "从哪里坐到哪里我都不会，虽然说我上学也有那么多，但是我就像一个文盲一样，人家说什么话我就很容易上当的那一种。",
+      highlights: ["很容易上当的那一种", "像一个文盲", "都不会"]
+    }
+  ]
+},
+  {
+  number: "07",
+  name: "杨鹏",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-07.jpg",
+  src: "audio/interview-07.mp3",
+  bg: "interview-backgrounds/bg-07.jpg",
+  visual: "hair",
+  messages: [
+    {
+      start: 0.0,
+      end: 10.7,
+      text: "我们几个就感觉嘛，外面这么乱，我们几个人太朴素了，怕被别人欺负，去搞了个纹身。",
+      highlights: ["怕被别人欺负", "外面这么乱", "太朴素了"]
+    },
+    {
+      start: 11.0,
+      end: 13.7,
+      text: "就这样嘛，看起来要凶一点嘛。",
+      highlights: ["看起来要凶一点嘛"]
+    },
+    {
+      start: 14.0,
+      end: 26.0,
+      text: "当然也是，也有好看的成分，也有心里面有点害怕那种感觉，就搞个发型，感觉自己就像那种小古惑仔，对吧？",
+      highlights: ["心里面有点害怕那种感觉", "小古惑仔", "发型"]
+    }
+  ]
+},
+  {
+  number: "08",
+  name: "Lisa",
+  age: "16岁外出打工",
+  portrait: "interview-portraits/interview-08.jpg",
+  src: "audio/interview-08.mp3",
+  bg: "interview-backgrounds/bg-08.jpg",
+  visual: "glitch",
+  messages: [
+    {
+      start: 0.0,
+      end: 22.0,
+      text: "把自己外表打扮得很强硬，就像刺猬一样，人家碰不到我，因为我把自己给封闭起来，这样子才不至于我很脆弱，很容易被人欺负，因为感觉太孤独了，真的。",
+      highlights: ["把自己外表打扮得很强硬", "把自己给封闭起来", "很容易被人欺负", "就像刺猬一样", "人家碰不到我", "太孤独了", "很脆弱"]
+    }
+  ]
+},
+  {
+  number: "09",
+  name: "白飞飞",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-09.jpg",
+  src: "audio/interview-09.mp3",
+  bg: "interview-backgrounds/bg-09.jpg",
+  visual: "spiral",
+  messages: [
+    {
+      start: 0.0,
+      end: 12.7,
+      text: "我很压抑，我就上网去搜查，像那个时候都有想到会自杀那种感觉，搜查一种叫什么安乐死的药物，都不想活了。",
+      highlights: ["想到会自杀那种感觉", "安乐死的药物", "都不想活了", "压抑"]
+    },
+    {
+      start: 13.0,
+      end: 24.7,
+      text: "那个时候我老妈的话她别的又不管，就是让你上班挣钱，如果你休息的话，那是什么感觉呢？",
+      highlights: ["上班挣钱", "又不管", "休息"]
+    },
+    {
+      start: 25.0,
+      end: 31.7,
+      text: "她就会老是拿她跟我比，我是天天上班都没什么，我一个月不休息也没什么，哪里需要休假？",
+      highlights: ["一个月不休息也没什么", "天天上班都没什么", "哪里需要休假", "休息"]
+    },
+    {
+      start: 32.0,
+      end: 34.7,
+      text: "你挣钱怎么样？",
+      highlights: ["你挣钱"]
+    },
+    {
+      start: 35.0,
+      end: 40.7,
+      text: "他说厂里有一个人，他也是那种搞的一个",
+      highlights: ["厂"]
+    },
+    {
+      start: 41.0,
+      end: 74.7,
+      text: "红颜色的头发有两三种，还穿的铆钉的靴子，虽然我跟他们不是很熟，但是我能感知得到那种性格的气氛，我能感觉得到当时已经浅浅的在我心里萌生了，他们这就是自由的，他们这就是个性的，这个可以说在我眼里和我父母是相违背的，他们可以做自己能做想做的事情，他们是自由的，我认为我慢慢到接触到他们之后，我就觉得。",
+      highlights: ["感知得到那种性格的气氛", "红颜色的头发有两三种", "做自己能做想做的事情", "在我心里萌生", "他们是自由的", "铆钉的靴子", "相违背的", "自由", "个性"]
+    },
+    {
+      start: 75.0,
+      end: 82.0,
+      text: "我的人生要发生一些改变，我的人生要我来做主才行，哪怕是错的。",
+      highlights: ["我的人生要发生一些改变", "我的人生要我来做主才行", "哪怕是错的"]
+    }
+  ]
+},
+  {
+  number: "10",
+  name: "云小帅",
+  age: "14岁外出打工",
+  portrait: "interview-portraits/interview-10.jpg",
+  src: "audio/interview-10.mp3",
+  bg: "interview-backgrounds/bg-10.jpg",
+  visual: "dots",
+  messages: [
+    {
+      start: 0.0,
+      end: 30.0,
+      text: "只想通过头发，或者是通过穿着打扮来发泄，就想着去把头发弄一下，弄得吸引人，让他们感觉想很想跟你交朋友，感觉你很独特，就算别人骂自己两句，也有人跟自己说话，就算别人怎么看无所谓，只要他愿意跟自己说话，哪怕是吵一架，至少有个人愿意跟我吵架之类的。",
+      highlights: ["只要他愿意跟自己说话", "通过穿着打扮来发泄", "哪怕是吵一架", "愿意跟我吵架", "别人骂自己", "通过头发", "吸引人", "交朋友", "头发", "独特", "说话", "至少"]
+    }
+  ]
+},
+{
+  number: "11",
+  name: "韩枫",
+  age: "16岁外出打工",
+  portrait: "interview-portraits/interview-11.jpg",
+  src: "audio/interview-11.mp3",
+  bg: "interview-backgrounds/bg-11.jpg",
+  visual: "hair",
+  messages: [
+    {
+      start: 0.0,
+      end: 24.7,
+      text: "因为我搞杀马特或者是非主流，还有他也搞杀马特，我觉得我们两个追求的性格个性是一样的，我们聊天各方面可以聊出一个人有一段历史，两个人互相聊着聊着，对这个发型、对追求都觉得有自己的共同目标，才有共同的语言去聊天各方面，对吧？",
+      highlights: ["杀马特或者是非主流", "追求的性格个性", "共同的语言", "共同目标", "杀马特", "历史", "发型", "追求"]
+    },
+    {
+      start: 25.0,
+      end: 30.7,
+      text: "如果说我，你叫我们玩杀马特的，跟一个平头的在那聊，无法是沟通的。",
+      highlights: ["无法是沟通的", "玩杀马特的", "杀马特"]
+    },
+    {
+      start: 31.0,
+      end: 37.0,
+      text: "他觉得你这个发型不怎么样，我都不想理你，我觉得他剃个平头，我说实话，你长得那么丑，我还懒得搭理你。",
+      highlights: ["发型"]
+    }
+  ]
+},
+  {
+  number: "12",
+  name: "肖子希",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-12.jpg",
+  src: "audio/interview-12.mp3",
+  bg: "interview-backgrounds/bg-12.jpg",
+  visual: "glitch",
+  messages: [
+    {
+      start: 0.0,
+      end: 10.7,
+      text: "挣钱、买车、买房，当然这种梦想谁都有，咱自己也知道自己出去打了，自己打工了，这也知道这种很难实现的对不对？",
+      highlights: ["挣钱、买车、买房", "这种梦想谁都有", "很难实现", "出去打", "打工了", "难实现"]
+    },
+    {
+      start: 11.0,
+      end: 17.7,
+      text: "随之而来也就放弃了，因为自己知道这个根本不可能，难实现。",
+      highlights: ["根本不可能", "放弃了", "难实现"]
+    },
+    {
+      start: 18.0,
+      end: 26.0,
+      text: "我选择了放弃，选择了自由。其他人，你说他心里面没什么想法，那不可能的。",
+      highlights: ["我选择了放弃", "选择了自由", "不可能的"]
+    }
+  ]
+},
+  {
+  number: "13",
+  name: "罗福兴",
+  age: "14岁外出打工",
+  portrait: "interview-portraits/interview-13.jpg",
+  src: "audio/interview-13.mp3",
+  bg: "interview-backgrounds/bg-13.jpg",
+  visual: "spiral",
+  messages: [
+    {
+      start: 0.0,
+      end: 18.7,
+      text: "像我们这种人的话，有时候你会觉得这个钱是能算得到的，一年，比方说给你4万，两年8万算，那要打工十年、二十年才能获得这套房这辆车。",
+      highlights: ["像我们这种人的话", "打工十年、二十年", "钱"]
+    },
+    {
+      start: 19.0,
+      end: 29.7,
+      text: "对呀，这些东西比方说动不动就多少千万，动不动多少百万，还有这些东西想都没有去想过，甚至不敢去想。",
+      highlights: ["想都没有去想过", "不敢去想"]
+    },
+    {
+      start: 30.0,
+      end: 34.7,
+      text: "这些东西跟你没有关系，关键是对，你在这里也消费不起。",
+      highlights: ["消费不起"]
+    },
+    {
+      start: 35.0,
+      end: 37.7,
+      text: "现在待在这里都感觉，是吧？"
+    },
+    {
+      start: 38.0,
+      end: 54.7,
+      text: "待在这里的话都感觉有一种感觉，就活不长的人会有一种感觉，对，比方说我现在月入两三万或者1万以上，我在这地方压力还没那么大，你说几千块钱，你在那个地方干什么嘛？",
+      highlights: ["活不长", "压力", "钱"]
+    },
+    {
+      start: 55.0,
+      end: 57.7,
+      text: "有什么好看的，是吧？"
+    },
+    {
+      start: 58.0,
+      end: 60.7,
+      text: "看一下那个楼哦，好高哦，怎么样？"
+    },
+    {
+      start: 61.0,
+      end: 68.0,
+      text: "所以我都很少这样抬头去看一栋楼的。",
+      highlights: ["很少"]
+    }
+  ]
+},
+  {
+  number: "14",
+  name: "肖子希",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-14.jpg",
+  src: "audio/interview-14.mp3",
+  bg: "interview-backgrounds/bg-14.jpg",
+  visual: "rings",
+  messages: [
+    {
+      start: 0.0,
+      end: 21.7,
+      text: "当时那里面总而言之就感觉好像很多都跟我们是一样的，留着那种长头发，感觉好像自己就适合在这环境里面生存那种，唯一不解的一点就是感觉好像大家好像都没有工作，反正那时候大家出去玩都玩的挺开心的。",
+      highlights: ["我们是一样的", "都没有工作", "长头发", "生存", "头发"]
+    },
+    {
+      start: 22.0,
+      end: 36.7,
+      text: "唯一一点就是你身上也没钱，我身上也没钱，那时候就不去溜冰场，就去公园里面玩，就这样去公园里面，就在公园里面三五成群的坐着，就聊天这种。",
+      highlights: ["也没钱", "没钱"]
+    },
+    {
+      start: 37.0,
+      end: 42.7,
+      text: "就比如说你，跟我俩都留了类似的头发，对吧？",
+      highlights: ["类似的头发", "头发"]
+    },
+    {
+      start: 43.0,
+      end: 46.7,
+      text: "我就要告诉你，你这头发应该换一下，应该怎么剪啊？",
+      highlights: ["头发"]
+    },
+    {
+      start: 47.0,
+      end: 49.7,
+      text: "应该留什么颜色这样好看？"
+    },
+    {
+      start: 50.0,
+      end: 61.7,
+      text: "有这种话题也不是说没人谈理想，有理想大家都不谈，因为你那时候都知道自己都没有上班，都实现不了，你还去谈它干嘛？",
+      highlights: ["也不是说没人谈理想", "有理想大家都不谈", "没有上班", "实现不了"]
+    },
+    {
+      start: 62.0,
+      end: 66.7,
+      text: "那谈出来肯定成笑话对不对？",
+      highlights: ["笑话"]
+    },
+    {
+      start: 67.0,
+      end: 78.0,
+      text: "也就没想过要去谈，玩着玩着在外面的话也就是瞎逛，感觉也没啥玩的，各自回家了以后又在那个什么。QQ上玩吧。"
+    }
+  ]
+},
+  {
+  number: "15",
+  name: "影儿",
+  age: "13岁外出打工",
+  portrait: "interview-portraits/interview-16.jpg",
+  src: "audio/interview-16.mp3",
+  bg: "interview-backgrounds/bg-15.jpg",
+  visual: "rings",
+  messages: [
+    {
+      start: 0.0,
+      end: 28.0,
+      text: "反正只要是杀马特，我们不管残血障碍或者是别的，但是只要你是杀马特非主流都是有一个家的感觉，因为大家可能有一种感觉，就是说我们是一种人，别人都是会觉得我们大家不正常，但是我们还能坚持下去，是一个家，只要是玩杀马特都是我们的家人。",
+      highlights: ["有一个家的感觉", "杀马特非主流", "我们是一种人", "残血障碍", "坚持下去", "是一个家", "杀马特", "不正常", "家人"]
+    }
+  ]
+},
+  {
+  number: "16",
+  name: "李雪松",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-17.jpg",
+  src: "audio/interview-17.mp3",
+  bg: "interview-backgrounds/bg-16.jpg",
+  visual: "glitch",
+  messages: [
+    {
+      start: 0.0,
+      end: 29.7,
+      text: "我发现社会不一样了，他们觉得我头发太长，觉得我年纪太小，亦或者是觉得我感觉看我外表，觉得我这个人不踏实，所以换了很多工作，这期间的话做过服务员，做过传菜员，弄过洗衣店搬家，洗过车，做过网吧，做过网管，最困难的时候身上只有 20 块钱，不敢乱花，也不敢乱用。",
+      highlights: ["社会不一样了", "换了很多工作", "洗衣店搬家", "20 块钱", "头发太长", "年纪太小", "不敢乱花", "不敢乱用", "不踏实", "服务员", "传菜员", "洗过车", "外表", "网吧", "网管"]
+    },
+    {
+      start: 30.0,
+      end: 43.0,
+      text: "当时住在昆明的一个城中村的小房子里边，特别灰暗，24 小时都需要开的那种。黑的就觉得是生活没意思。",
+      highlights: ["生活没意思", "特别灰暗", "城中村", "小房子"]
+    }
+  ]
+},
+  {
+  number: "17",
+  name: "白飞飞",
+  age: "15岁外出打工",
+  portrait: "interview-portraits/interview-18.jpg",
+  src: "audio/interview-18.mp3",
+  bg: "interview-backgrounds/bg-17.jpg",
+  visual: "spiral",
+  messages: [
+    {
+      start: 0.0,
+      end: 22.0,
+      text: "其实我一直心里有一个小小的愿望，如果下次我结婚，我肯定办一个杀马特的婚礼，是两套婚纱照，必须要有一个杀马特的造型，小女孩的样子，这样回忆很多年，珍藏起来。",
+      highlights: ["杀马特的婚礼", "杀马特的造型", "小女孩的样子", "小小的愿望", "回忆很多年", "珍藏起来", "结婚"]
+    }
+  ]
+},
+  {
+  number: "18",
+  name: "蓝少",
+  age: "14岁外出打工",
+  portrait: "interview-portraits/interview-19.jpg",
+  src: "audio/interview-19.mp3",
+  bg: "interview-backgrounds/bg-18.jpg",
+  visual: "dots",
+  messages: [
+    {
+      start: 0.0,
+      end: 32.7,
+      text: "那段时间，快手官方在整顿的那段时间，整顿那段时间让我们有半个月的时间没有拍作品，我们家里面的事情忙完以后，我们就开直播，突然间就没有人点进来，我们就用手机搜索快手的 ID 号，搜索不了名字也搜索不了，我们就打电话给官方咨询，咨询了之后我们这个号在广场上跳过舞。",
+      highlights: ["没有人点进来", "没有拍作品", "搜索不了", "官方咨询", "官方", "整顿"]
+    },
+    {
+      start: 33.0,
+      end: 52.0,
+      text: "对社会造成危害，我们跳舞，我们是在广场上去直播，直过播一次，但是没有经常去，就是我们都是在家里面，我们就是跳跳舞逗大家开心，但是突然间给我们封了，我们都找不了这样的原因。",
+      highlights: ["跳跳舞逗大家开心", "突然间给我们封了", "找不了这样的原因", "对社会造成危害", "跳舞"]
+    }
+  ]
+},
+  {
+  number: "19",
+  name: "罗福兴",
+  age: "14岁外出打工",
+  portrait: "interview-portraits/interview-20.jpg",
+  src: "audio/interview-20.mp3",
+  bg: "interview-backgrounds/bg-19.jpg",
+  visual: "waves",
+  messages: [
+    {
+      start: 0.0,
+      end: 23.7,
+      text: "来打工的人，基本上所有人都出去外面打工，不会说待在家里，因为他们坚信着一句话就是困难，困在家里肯定困难出路，走出去就有路，农村人可能会觉得城里人跟我们是一样，而城里人的人可能有些人会认为跟我农村人跟我们是不一样。",
+      highlights: ["所有人都出去外面打工", "困在家里肯定困难出路", "走出去就有路", "农村人", "城里人", "不一样", "困难", "打工"]
+    },
+    {
+      start: 24.0,
+      end: 34.7,
+      text: "城里人肯定不会说玩农村人玩过的东西，农村人肯定会玩，农村人玩的东西也会玩城里面的东西，有些东西玩不了就不玩。",
+      highlights: ["农村人玩的东西也会玩城里面的东西", "农村人肯定会玩", "城里面", "城里人", "农村人"]
+    },
+    {
+      start: 35.0,
+      end: 58.7,
+      text: "不如直接玩农村里的东西，所以更多的都是农村的人玩，城里的人可能会比较少，因为他觉得这个东西，他们认为这个东西很土，每个人追求的东西不一样，杀马特的话可能只能追求杀马特，因为他没有其他东西，他追求不了。",
+      highlights: ["杀马特的话可能只能追求杀马特", "每个人追求的东西不一样", "他没有其他东西", "农村里的东西", "农村的人", "城里的人", "他追求不了", "很土", "杀马特"]
+    },
+    {
+      start: 59.0,
+      end: 69.7,
+      text: "房车太遥远了，有背景的还好一点，没有什么背景的，或者是老一辈、父一辈没有给他打下基础的。",
+      highlights: ["房车太遥远了"]
+    },
+    {
+      start: 70.0,
+      end: 93.7,
+      text: "现在这个社会，比方说现在来，我比方说我现在出门,或者在那个年代出门，感觉就是:第一时间我居然想到的是进厂，我发现所有人跟我想的想法都是一样，我们出来干嘛？进厂啊？难道没有别的了吗？没有别的了，你只有这个选择，我发现就一个选择了。",
+      highlights: ["第一时间我居然想到的是进厂", "所有人跟我想的想法都是一样", "我们出来干嘛？进厂啊？", "难道没有别的了吗？", "你只有这个选择", "没有别的了", "一个选择", "社会", "进厂"]
+    },
+    {
+      start: 94.0,
+      end: 122.7,
+      text: "对啊，那单这个选择的话，你肯定会觉得很无聊，可能会找一些有趣的东西，头发就是一个有趣的东西。对呀，你没有其他更有趣的东西，玩车、玩什么之类的？你玩不起，那我只能玩头发。是吧？",
+      highlights: ["头发就是一个有趣的东西", "我只能玩头发", "你玩不起", "头发"]
+    },
+    {
+      start: 123.0,
+      end: 145.7,
+      text: "只要这个社会，只要这个世界还存在的，它就一定会有被淘汰也好，被伤害的人也好，不被尊重的人也好，对，农村不会消失，除非农村消失了，教育可能更好了，个个都上过大学了，它可能会消失，说不定也不会消失。说不定它会改变。",
+      highlights: ["只要这个世界还存在", "个个都上过大学了", "说不定也不会消失", "教育可能更好了", "只要这个社会", "农村不会消失", "它可能会消失", "农村消失了", "不被尊重", "被淘汰", "被伤害"]
+    },
+    {
+      start: 146.0,
+      end: 156.0,
+      text: "但是可能杀马特会以另外一种生一种方式生存，也不一定，是吧？",
+      highlights: ["杀马特会以另外一种生一种方式生存", "另外一种", "生存"]
+    }
+  ]
+}
+];
+
+const messageTranslations = {
+  "我没有一种存在感，但是玩这个就会有人注意到你，就会有人去关心，有一些人他就会用大哥的语气跟你说小妹妹玩这个没前途的，就会去关心你啊。": "I didn’t have any sense of presence, but when I played with this style, people would notice me and care about me. Some people would talk to me in an older-brother tone, saying, little sister, there’s no future in playing with this, and that was also a kind of care.",
+  "有时候玩这个也有种私心，得到一种关心，有一种关爱。": "Sometimes there was also a selfish reason for playing with this style: I wanted to receive some care, some affection.",
+  "因为平时如果你是正常人，肯定没有这些，谁会多余的说看到一个正常人也去安慰你，你不正常的样子别人才会去，就大部分人都会去关心你会说:": "Because normally, if you look like a normal person, you definitely don’t get these things. Who would go out of their way to comfort someone who looks normal? Only when you look abnormal would people come over; most people would care and say:",
+  "这个人是不是经历了一些什么不开心的事情，才会变成这样？": "Did this person go through something unhappy, and is that why they became like this?",
+  "虽然城市感觉特别乱，但是反正感觉有很多机会给我。": "The city felt especially chaotic, but anyway, it felt like it had many opportunities for me.",
+  "机会比农村多，总是有新鲜的东西发生嘛。": "There were more opportunities than in the countryside, and there were always new things happening.",
+  "我在农村的话，感觉每天过着同样的事情，就是玩着同样的事情。": "When I was in the countryside, it felt like every day was the same, doing the same things and playing the same things.",
+  "除了去水里面摸鱼、放羊、放牛，没啥搞的了，所以有种特别想逃离农村。": "Besides catching fish in the water, herding sheep, and herding cattle, there was nothing else to do, so I really wanted to escape the countryside.",
+  "我不是扎着两个小揪揪嘛？": "Wasn’t I wearing my hair in two little pigtails?",
+  "当时很小嘛": "I was very young at the time.",
+  "我堂姐说，她说你这个不要这样扎了，你这样扎的厂里不要你的，你太小，你身份证也没有，她说你再扎这个别人就看着你就是特别小的那种，我堂姐就把我改变了一下，就进去带我们去面试嘛，厂里面那个人事部的说，虽然说是你出来的比较早，但是像你这个年龄出来的已经是太小了，他还问我说你们那里是太穷了吗？": "My older cousin told me not to wear my hair like that anymore, saying the factory wouldn’t take me because I looked too young and didn’t even have an ID card. She changed my appearance a bit and took us in for the interview. The HR person at the factory said that even though I had come out to work early, I was still too young for my age. He even asked whether my hometown was so poor.",
+  "就这么小就把他赶出来打工了，就这个意思。": "He meant, was I driven out to work at such a young age?",
+  "是啊，我们那个带班的说如果不要这个的话，我们这一帮人都不进这个厂，刚好那个时候他那个厂又要缺人，就是很赶货的那种情况下，他就说，那就说你们人那么多，是不是就为了一个就全部不进了？": "Yes. The person leading our group said that if they didn’t take me, none of us would enter the factory. The factory happened to be short of workers and rushing orders, so he said, you have so many people, are you really all not coming in just because of one person?",
+  "也不值得。要就要嘛，以后他自己做的了就先做着，如果说做不了的话，让他就是开除的，这个意思就当时就要了的。": "It wasn’t worth losing everyone over that. So they took me. The idea was that if I could do the work, I would stay, and if I couldn’t, they would fire me. That was how they accepted me at the time.",
+  "别人搞3箱，我就可以搞6箱，一箱差不多五六百个吧。": "When other people did three boxes, I could do six. Each box had about five or six hundred pieces.",
+  "他们都觉得我干的好像有点快，就让我去搞，是那种锈了可以擦掉那种布，裹的时候，那些会裹多了会把这个皮磨掉，每天都把我手摸那些指甲都摸不见了。": "They all thought I worked pretty fast, so they made me do it. It was the kind of cloth used to wipe off rust. When wrapping it, if you wrapped too much around the edges, it would rub the skin off. Every day my hands were worn down so badly that even my fingernails seemed to disappear.",
+  "每天都是加班，加到11点左右。": "Every day was overtime, working until around eleven at night.",
+  "起床都是6点钟开始起，就是7点半开始上班了，我感觉好累，我真坚持不下来，我就跟他们说了几次，我就说我不想做了，你们能不能结账给我？": "I had to get up at six, and work started at seven-thirty. I felt so tired. I really couldn’t keep going, so I told them several times: I don’t want to do this anymore. Can you pay me what you owe me?",
+  "他说你才来了两三个月就不结账，我就每次走到那个厂我就不想进去，但是不进去又没钱，没有饭吃嘛，还是不知不觉的就走进去了。": "They said I had only been there for two or three months, so they wouldn’t settle the pay. Every time I walked to the factory, I didn’t want to go in, but if I didn’t go in, I had no money and no food, so somehow I still walked in.",
+  "那时候我第一年出去的时候，小老板只有三台机械，就跟我两个表哥在那里给他操作，他也属于是私人加工，去大厂里面接货出来的脏又累又没有安全保障，这手这里还被那个机器压到什么都不赔的，就连生活费他都不赔。": "The first year I went out to work, the small boss only had three machines. My two cousins and I operated them for him. It was private processing work, taking orders from big factories. It was dirty, exhausting, and had no safety protection. My hand got crushed by that machine, and he didn’t compensate me for anything, not even living expenses.",
+  "你就干了一个月没干活嘛。": "I ended up not working for a month.",
+  "就在那里睡，扯出来的铁丝给绞到手，这筋都断了，包了一个月，反正后来去找老板。": "I just stayed there and slept. A piece of wire got pulled out and twisted into my hand; the tendon was severed. It was bandaged for a month. Later I went to find the boss.",
+  "老板说你做不做，反正你又小，你出去找不到，那时候出去才1000多块钱。": "The boss asked whether I still wanted to work. He said, you’re young anyway, and you won’t find anything if you leave. At that time, going out to work only paid a little over one thousand yuan.",
+  "1000还算高的。有的人说去劳动局告，劳动局是什么我都不知道。": "One thousand was already considered high. Some people told me to report it to the labor bureau, but I didn’t even know what the labor bureau was.",
+  "第一年出去很单纯的。": "I was very naive during my first year away from home.",
+  "以前除了会打工什么都不会，那时候我去看个电视，我都可以看通宵，那时候我可以几个月不出那个厂门口，因为我不需要出去，我不需要跟外界的人接触，我就下班了就回宿舍，该干嘛就干嘛，你说厂门口的话，除了去买一个女孩子用的生理期用的卫生巾以外，其他都不会出去，就待在厂里面都可以的，那时候。怎么用银行卡呀？": "Back then, aside from working in factories, I didn’t know how to do anything. I could watch TV all night. I could go for months without leaving the factory gate, because I didn’t need to go out or interact with the outside world. After work, I just went back to the dorm and did whatever I needed to do. As for the factory gate, except for buying sanitary pads, I wouldn’t go out for anything else. I could just stay inside the factory. How was I supposed to use a bank card?",
+  "怎么坐公交车？": "How was I supposed to take a bus?",
+  "从哪里坐到哪里我都不会，虽然说我上学也有那么多，但是我就像一个文盲一样，人家说什么话我就很容易上当的那一种。": "I didn’t know where to get on or where to get off. Even though I had gone to school for years, I was like an illiterate person. I was the kind of person who could easily be fooled by what others said.",
+  "我们几个就感觉嘛，外面这么乱，我们几个人太朴素了，怕被别人欺负，去搞了个纹身。": "We felt that the outside world was so chaotic, and we looked too plain. We were afraid of being bullied, so we got tattoos.",
+  "就这样嘛，看起来要凶一点嘛。": "That way, we looked a little fiercer.",
+  "当然也是，也有好看的成分，也有心里面有点害怕那种感觉，就搞个发型，感觉自己就像那种小古惑仔，对吧？": "Of course, part of it was also because it looked good, but there was also a bit of fear inside. So we got those hairstyles and felt like little gangsters, right?",
+  "把自己外表打扮得很强硬，就像刺猬一样，人家碰不到我，因为我把自己给封闭起来，这样子才不至于我很脆弱，很容易被人欺负，因为感觉太孤独了，真的。": "I made my appearance look very tough, like a hedgehog, so that people couldn’t touch me. I closed myself off that way so I wouldn’t seem so fragile or so easy to bully, because I felt too lonely, really.",
+  "我很压抑，我就上网去搜查，像那个时候都有想到会自杀那种感觉，搜查一种叫什么安乐死的药物，都不想活了。": "I felt very repressed, so I went online to search. At that time, I even had thoughts of suicide and searched for something called euthanasia drugs. I didn’t want to live anymore.",
+  "那个时候我老妈的话她别的又不管，就是让你上班挣钱，如果你休息的话，那是什么感觉呢？": "At that time, my mother didn’t care about anything else. She just wanted me to work and earn money. If I rested, what did that feel like?",
+  "她就会老是拿她跟我比，我是天天上班都没什么，我一个月不休息也没什么，哪里需要休假？": "She would always compare herself to me, saying she worked every day and it was nothing, that she could go a whole month without resting, so why would I need a day off?",
+  "你挣钱怎么样？": "How much money are you making?",
+  "他说厂里有一个人，他也是那种搞的一个": "Someone said there was a person in the factory who was also dressed like that,",
+  "红颜色的头发有两三种，还穿的铆钉的靴子，虽然我跟他们不是很熟，但是我能感知得到那种性格的气氛，我能感觉得到当时已经浅浅的在我心里萌生了，他们这就是自由的，他们这就是个性的，这个可以说在我眼里和我父母是相违背的，他们可以做自己能做想做的事情，他们是自由的，我认为我慢慢到接触到他们之后，我就觉得。": "with two or three shades of red in their hair, and wearing studded boots. Although I wasn’t very close to them, I could feel that kind of personality, that atmosphere. I could feel something quietly taking root in my heart: they were freedom, they were individuality. In my eyes, they were the opposite of my parents. They could do what they wanted to do. They were free. After slowly coming into contact with them, I felt that",
+  "我的人生要发生一些改变，我的人生要我来做主才行，哪怕是错的。": "my life needed to change. I needed to be the one in charge of my life, even if I was wrong.",
+  "只想通过头发，或者是通过穿着打扮来发泄，就想着去把头发弄一下，弄得吸引人，让他们感觉想很想跟你交朋友，感觉你很独特，就算别人骂自己两句，也有人跟自己说话，就算别人怎么看无所谓，只要他愿意跟自己说话，哪怕是吵一架，至少有个人愿意跟我吵架之类的。": "I just wanted to vent through my hair or through the way I dressed. I wanted to style my hair so it would attract people, so they would want to make friends with me and feel that I was unique. Even if someone cursed at me, at least someone was talking to me. It didn’t matter how people saw me, as long as they were willing to talk to me. Even if it was an argument, at least there was someone willing to argue with me.",
+  "因为我搞杀马特或者是非主流，还有他也搞杀马特，我觉得我们两个追求的性格个性是一样的，我们聊天各方面可以聊出一个人有一段历史，两个人互相聊着聊着，对这个发型、对追求都觉得有自己的共同目标，才有共同的语言去聊天各方面，对吧？": "Because I was into Shamate or non-mainstream style, and he was also into Shamate, I felt that the personalities and individuality we were pursuing were the same. When we talked, we could talk about a person’s history. As we kept chatting, we felt that we had a shared goal in this hairstyle and this pursuit, and that was why we had a common language, right?",
+  "如果说我，你叫我们玩杀马特的，跟一个平头的在那聊，无法是沟通的。": "If you asked people like us who played with Shamate style to chat with someone with a plain buzz cut, there was no way to communicate.",
+  "他觉得你这个发型不怎么样，我都不想理你，我觉得他剃个平头，我说实话，你长得那么丑，我还懒得搭理你。": "He might think my hairstyle was no good, and I wouldn’t even want to bother with him. If he had a buzz cut, honestly, I would think he looked so ugly that I couldn’t be bothered to talk to him.",
+  "挣钱、买车、买房，当然这种梦想谁都有，咱自己也知道自己出去打了，自己打工了，这也知道这种很难实现的对不对？": "Making money, buying a car, buying a house—of course everyone has those dreams. But once we went out to work, we also knew these things were very hard to achieve, right?",
+  "随之而来也就放弃了，因为自己知道这个根本不可能，难实现。": "So gradually we gave up, because we knew it was basically impossible and very hard to realize.",
+  "我选择了放弃，选择了自由。其他人，你说他心里面没什么想法，那不可能的。": "I chose to give up, and I chose freedom. As for other people, if you say they had no thoughts in their hearts, that’s impossible.",
+  "像我们这种人的话，有时候你会觉得这个钱是能算得到的，一年，比方说给你4万，两年8万算，那要打工十年、二十年才能获得这套房这辆车。": "For people like us, sometimes you feel that money can be calculated. Say you earn forty thousand a year, eighty thousand in two years; you would have to work ten or twenty years to get that house or that car.",
+  "对呀，这些东西比方说动不动就多少千万，动不动多少百万，还有这些东西想都没有去想过，甚至不敢去想。": "Yes, things like that can easily cost tens of millions or millions. We never even thought about them, or even dared to think about them.",
+  "这些东西跟你没有关系，关键是对，你在这里也消费不起。": "Those things have nothing to do with you. The key is that you can’t afford to consume here.",
+  "现在待在这里都感觉，是吧？": "Even just staying here now gives you that feeling, right?",
+  "待在这里的话都感觉有一种感觉，就活不长的人会有一种感觉，对，比方说我现在月入两三万或者1万以上，我在这地方压力还没那么大，你说几千块钱，你在那个地方干什么嘛？": "Staying here gives you a feeling like you won’t last long. If I made twenty or thirty thousand a month, or at least over ten thousand, the pressure here wouldn’t be so great. But if you only make a few thousand, what are you doing in a place like that?",
+  "有什么好看的，是吧？": "What is there to look at, right?",
+  "看一下那个楼哦，好高哦，怎么样？": "Look at that building—oh, it’s so tall—so what?",
+  "所以我都很少这样抬头去看一栋楼的。": "So I rarely look up at buildings like that.",
+  "当时那里面总而言之就感觉好像很多都跟我们是一样的，留着那种长头发，感觉好像自己就适合在这环境里面生存那种，唯一不解的一点就是感觉好像大家好像都没有工作，反正那时候大家出去玩都玩的挺开心的。": "At that time, in that place, it felt like many people were the same as us, with that kind of long hair. It felt like I was suited to survive in that environment. The only thing I didn’t understand was that it seemed like nobody had a job. Anyway, when everyone went out to play, they were pretty happy.",
+  "唯一一点就是你身上也没钱，我身上也没钱，那时候就不去溜冰场，就去公园里面玩，就这样去公园里面，就在公园里面三五成群的坐着，就聊天这种。": "The only thing was that you had no money, and I had no money either. So we wouldn’t go to the skating rink; we would go to the park. We would sit in small groups of three or five in the park and chat.",
+  "就比如说你，跟我俩都留了类似的头发，对吧？": "For example, if you and I had similar hairstyles, right?",
+  "我就要告诉你，你这头发应该换一下，应该怎么剪啊？": "I would tell you that your hair should be changed, how it should be cut.",
+  "应该留什么颜色这样好看？": "What color you should keep so it would look good.",
+  "有这种话题也不是说没人谈理想，有理想大家都不谈，因为你那时候都知道自己都没有上班，都实现不了，你还去谈它干嘛？": "We had topics like that. It wasn’t that nobody had ideals, but nobody talked about them, because at that time we all knew we weren’t working and couldn’t realize them. So why talk about them?",
+  "那谈出来肯定成笑话对不对？": "If you talked about them, they would definitely become a joke, right?",
+  "也就没想过要去谈，玩着玩着在外面的话也就是瞎逛，感觉也没啥玩的，各自回家了以后又在那个什么。QQ上玩吧。": "So we never thought about talking about them. When we were out playing, we were really just wandering around. There didn’t seem to be much to do. After going home, we would just play on QQ.",
+  "反正只要是杀马特，我们不管残血障碍或者是别的，但是只要你是杀马特非主流都是有一个家的感觉，因为大家可能有一种感觉，就是说我们是一种人，别人都是会觉得我们大家不正常，但是我们还能坚持下去，是一个家，只要是玩杀马特都是我们的家人。": "As long as you were Shamate, whether you were Canxue Zhangai or from another group, as long as you were Shamate or non-mainstream, there was a feeling of having a home. Maybe everyone felt that we were the same kind of people. Others thought we were all abnormal, but we could still keep going. It was a home. As long as you played with Shamate style, you were our family.",
+  "我发现社会不一样了，他们觉得我头发太长，觉得我年纪太小，亦或者是觉得我感觉看我外表，觉得我这个人不踏实，所以换了很多工作，这期间的话做过服务员，做过传菜员，弄过洗衣店搬家，洗过车，做过网吧，做过网管，最困难的时候身上只有 20 块钱，不敢乱花，也不敢乱用。": "I found that society was different. People thought my hair was too long, that I was too young, or they looked at my appearance and felt I wasn’t reliable. So I changed jobs many times. During that period, I worked as a waiter, a food runner, at a laundry, doing moving jobs, washing cars, in internet cafés, and as a network administrator. At the hardest time, I had only twenty yuan on me, and I didn’t dare spend it carelessly.",
+  "当时住在昆明的一个城中村的小房子里边，特别灰暗，24 小时都需要开的那种。黑的就觉得是生活没意思。": "At that time, I lived in a small room in an urban village in Kunming. It was especially dim, the kind of place where the light had to be on twenty-four hours a day. It was so dark that life felt meaningless.",
+  "其实我一直心里有一个小小的愿望，如果下次我结婚，我肯定办一个杀马特的婚礼，是两套婚纱照，必须要有一个杀马特的造型，小女孩的样子，这样回忆很多年，珍藏起来。": "Actually, I have always had a small wish in my heart. If I get married next time, I will definitely have a Shamate wedding. For the wedding photos, there must be a Shamate look, a little-girl version of myself, so I can remember it for many years and keep it as something precious.",
+  "那段时间，快手官方在整顿的那段时间，整顿那段时间让我们有半个月的时间没有拍作品，我们家里面的事情忙完以后，我们就开直播，突然间就没有人点进来，我们就用手机搜索快手的 ID 号，搜索不了名字也搜索不了，我们就打电话给官方咨询，咨询了之后我们这个号在广场上跳过舞。": "During that period, when Kuaishou was carrying out an official cleanup, we couldn’t make any videos for half a month. After we finished dealing with things at home, we started a livestream, and suddenly nobody came in. We searched for our Kuaishou ID on our phones, but neither the ID nor the name could be found. We called the platform to ask, and after consulting them, they said our account had danced in a public square.",
+  "对社会造成危害，我们跳舞，我们是在广场上去直播，直过播一次，但是没有经常去，就是我们都是在家里面，我们就是跳跳舞逗大家开心，但是突然间给我们封了，我们都找不了这样的原因。": "They said it caused harm to society. We danced, and yes, we had livestreamed once in a public square, but we didn’t go there often. Most of the time we were at home, just dancing to make everyone happy. Then suddenly our account was blocked, and we couldn’t understand the reason.",
+  "来打工的人，基本上所有人都出去外面打工，不会说待在家里，因为他们坚信着一句话就是困难，困在家里肯定困难出路，走出去就有路，农村人可能会觉得城里人跟我们是一样，而城里人的人可能有些人会认为跟我农村人跟我们是不一样。": "People who came out to work—basically everyone went outside to work. They wouldn’t stay at home, because they firmly believed in a saying: if you stay trapped at home, things will definitely be difficult; if you go out, there will be a road. Rural people might think city people are the same as us, while some city people might think rural people are different from them.",
+  "城里人肯定不会说玩农村人玩过的东西，农村人肯定会玩，农村人玩的东西也会玩城里面的东西，有些东西玩不了就不玩。": "City people definitely wouldn’t play with things that rural people had played with. Rural people would play with rural things, and also play with city things. If there were things they couldn’t play with, then they simply wouldn’t.",
+  "不如直接玩农村里的东西，所以更多的都是农村的人玩，城里的人可能会比较少，因为他觉得这个东西，他们认为这个东西很土，每个人追求的东西不一样，杀马特的话可能只能追求杀马特，因为他没有其他东西，他追求不了。": "So it was better to just play with things from the countryside. That’s why more rural people played with it, while city people were probably fewer, because they felt it was tacky. Everyone pursues different things. For Shamate, maybe they could only pursue Shamate, because they didn’t have anything else they could pursue.",
+  "房车太遥远了，有背景的还好一点，没有什么背景的，或者是老一辈、父一辈没有给他打下基础的。": "Houses and cars were too far away. It was easier for people with a background, but not for those without any background, or those whose parents and grandparents hadn’t laid a foundation for them.",
+  "现在这个社会，比方说现在来，我比方说我现在出门,或者在那个年代出门，感觉就是:第一时间我居然想到的是进厂，我发现所有人跟我想的想法都是一样，我们出来干嘛？进厂啊？难道没有别的了吗？没有别的了，你只有这个选择，我发现就一个选择了。": "In today’s society, or even back then, whenever I went out, the first thing I thought of was entering a factory. I realized everyone thought the same way. Why did we come out? To enter a factory. Was there nothing else? There was nothing else. You only had that one choice. I found there was only one option.",
+  "对啊，那单这个选择的话，你肯定会觉得很无聊，可能会找一些有趣的东西，头发就是一个有趣的东西。对呀，你没有其他更有趣的东西，玩车、玩什么之类的？你玩不起，那我只能玩头发。是吧？": "Yes, if you only have that one choice, you definitely feel bored, so you might look for something interesting. Hair was one interesting thing. You didn’t have other, more interesting things—cars or whatever—you couldn’t afford to play with those. So I could only play with hair, right?",
+  "只要这个社会，只要这个世界还存在的，它就一定会有被淘汰也好，被伤害的人也好，不被尊重的人也好，对，农村不会消失，除非农村消失了，教育可能更好了，个个都上过大学了，它可能会消失，说不定也不会消失。说不定它会改变。": "As long as this society and this world still exist, there will always be people who are eliminated, hurt, or not respected. Yes, the countryside won’t disappear. Unless the countryside disappears, or education becomes better and everyone has gone to university, then it might disappear—or maybe it still won’t. Maybe it will change.",
+  "但是可能杀马特会以另外一种生一种方式生存，也不一定，是吧？": "But maybe Shamate will survive in another form, in another way. That’s possible, right?"
+};
+
+interviews.forEach((item) => {
+  (item.messages || []).forEach((message) => {
+    if (!message.textEn && messageTranslations[message.text]) {
+      message.textEn = messageTranslations[message.text];
+    }
+  });
+});
+
+
+/* ===== FINAL: English keyword highlights matching Chinese highlights ===== */
+const englishHighlightGroups = [
+{
+    "track": 0,
+    "message": 0,
+    "highlights": [
+      "I didn’t have any sense of presence",
+      "when I played with this style, people would notice me",
+      "people would notice me",
+      "care about me",
+      "there’s no future in playing with this",
+      "kind of care"
+    ]
+  },
+{
+    "track": 0,
+    "message": 1,
+    "highlights": [
+      "receive some care",
+      "some affection"
+    ]
+  },
+{
+    "track": 0,
+    "message": 2,
+    "highlights": [
+      "normal person",
+      "looks normal",
+      "look abnormal",
+      "would care"
+    ]
+  },
+{
+    "track": 0,
+    "message": 3,
+    "highlights": [
+      "go through something unhappy",
+      "something unhappy"
+    ]
+  },
+{
+    "track": 1,
+    "message": 0,
+    "highlights": [
+      "The city felt especially chaotic"
+    ]
+  },
+{
+    "track": 1,
+    "message": 1,
+    "highlights": [
+      "countryside"
+    ]
+  },
+{
+    "track": 1,
+    "message": 2,
+    "highlights": [
+      "countryside"
+    ]
+  },
+{
+    "track": 1,
+    "message": 3,
+    "highlights": [
+      "escape the countryside",
+      "countryside"
+    ]
+  },
+{
+    "track": 2,
+    "message": 1,
+    "highlights": [
+      "very young at the time"
+    ]
+  },
+{
+    "track": 2,
+    "message": 2,
+    "highlights": [
+      "the factory wouldn’t take me",
+      "too young",
+      "didn’t even have an ID card",
+      "looked too young",
+      "come out to work early",
+      "too young for my age",
+      "whether my hometown was so poor",
+      "factory"
+    ]
+  },
+{
+    "track": 2,
+    "message": 3,
+    "highlights": [
+      "driven out to work at such a young age"
+    ]
+  },
+{
+    "track": 2,
+    "message": 4,
+    "highlights": [
+      "enter the factory",
+      "The factory",
+      "short of workers",
+      "rushing orders",
+      "factory"
+    ]
+  },
+{
+    "track": 2,
+    "message": 5,
+    "highlights": [
+      "fire me"
+    ]
+  },
+{
+    "track": 3,
+    "message": 1,
+    "highlights": [
+      "wipe off rust",
+      "rub the skin off",
+      "my hands were worn down so badly that even my fingernails seemed to disappear"
+    ]
+  },
+{
+    "track": 3,
+    "message": 2,
+    "highlights": [
+      "Every day was overtime",
+      "until around eleven at night"
+    ]
+  },
+{
+    "track": 3,
+    "message": 3,
+    "highlights": [
+      "get up at six",
+      "work started at seven-thirty",
+      "I felt so tired",
+      "I really couldn’t keep going",
+      "I don’t want to do this anymore",
+      "Can you pay me"
+    ]
+  },
+{
+    "track": 3,
+    "message": 4,
+    "highlights": [
+      "wouldn’t settle the pay",
+      "the factory",
+      "I didn’t want to go in",
+      "no money",
+      "no food"
+    ]
+  },
+{
+    "track": 4,
+    "message": 0,
+    "highlights": [
+      "private processing work",
+      "dirty, exhausting, and had no safety protection",
+      "My hand got crushed by that machine",
+      "didn’t compensate me for anything",
+      "not even living expenses"
+    ]
+  },
+{
+    "track": 4,
+    "message": 1,
+    "highlights": [
+      "not working"
+    ]
+  },
+{
+    "track": 4,
+    "message": 2,
+    "highlights": [
+      "wire got pulled out and twisted into my hand",
+      "the tendon was severed"
+    ]
+  },
+{
+    "track": 4,
+    "message": 3,
+    "highlights": [
+      "whether I still wanted to work",
+      "you’re young",
+      "you won’t find anything"
+    ]
+  },
+{
+    "track": 4,
+    "message": 4,
+    "highlights": [
+      "report it to the labor bureau",
+      "labor bureau"
+    ]
+  },
+{
+    "track": 4,
+    "message": 5,
+    "highlights": [
+      "very naive"
+    ]
+  },
+{
+    "track": 5,
+    "message": 0,
+    "highlights": [
+      "aside from working in factories, I didn’t know how to do anything",
+      "months without leaving the factory gate",
+      "didn’t need to go out",
+      "interact with the outside world",
+      "went back to the dorm",
+      "factory gate",
+      "inside the factory",
+      "wouldn’t go out"
+    ]
+  },
+{
+    "track": 5,
+    "message": 2,
+    "highlights": [
+      "I didn’t know",
+      "like an illiterate person",
+      "could easily be fooled"
+    ]
+  },
+{
+    "track": 6,
+    "message": 0,
+    "highlights": [
+      "outside world was so chaotic",
+      "looked too plain",
+      "afraid of being bullied"
+    ]
+  },
+{
+    "track": 6,
+    "message": 1,
+    "highlights": [
+      "looked a little fiercer"
+    ]
+  },
+{
+    "track": 6,
+    "message": 2,
+    "highlights": [
+      "a bit of fear inside",
+      "hairstyles",
+      "little gangsters"
+    ]
+  },
+{
+    "track": 7,
+    "message": 0,
+    "highlights": [
+      "appearance look very tough",
+      "like a hedgehog",
+      "people couldn’t touch me",
+      "closed myself off",
+      "fragile",
+      "easy to bully",
+      "too lonely"
+    ]
+  },
+{
+    "track": 8,
+    "message": 0,
+    "highlights": [
+      "repressed",
+      "thoughts of suicide",
+      "euthanasia drugs",
+      "didn’t want to live anymore"
+    ]
+  },
+{
+    "track": 8,
+    "message": 1,
+    "highlights": [
+      "didn’t care",
+      "work and earn money",
+      "rested"
+    ]
+  },
+{
+    "track": 8,
+    "message": 2,
+    "highlights": [
+      "worked every day",
+      "a whole month without resting",
+      "need a day off"
+    ]
+  },
+{
+    "track": 8,
+    "message": 3,
+    "highlights": [
+      "money"
+    ]
+  },
+{
+    "track": 8,
+    "message": 4,
+    "highlights": [
+      "factory"
+    ]
+  },
+{
+    "track": 8,
+    "message": 5,
+    "highlights": [
+      "two or three shades of red in their hair",
+      "studded boots",
+      "feel that kind of personality, that atmosphere",
+      "taking root in my heart",
+      "freedom",
+      "individuality",
+      "opposite of my parents",
+      "do what they wanted to do",
+      "free"
+    ]
+  },
+{
+    "track": 8,
+    "message": 6,
+    "highlights": [
+      "my life needed to change",
+      "I needed to be the one in charge of my life",
+      "even if I was wrong"
+    ]
+  },
+{
+    "track": 9,
+    "message": 0,
+    "highlights": [
+      "vent through my hair",
+      "through the way I dressed",
+      "style my hair",
+      "attract people",
+      "make friends with me",
+      "unique",
+      "someone cursed at me",
+      "someone was talking to me",
+      "willing to talk to me",
+      "Even if it was an argument",
+      "someone willing to argue with me",
+      "at least"
+    ]
+  },
+{
+    "track": 10,
+    "message": 0,
+    "highlights": [
+      "Shamate or non-mainstream style",
+      "into Shamate",
+      "personalities and individuality",
+      "a person’s history",
+      "shared goal",
+      "hairstyle",
+      "pursuit",
+      "common language"
+    ]
+  },
+{
+    "track": 10,
+    "message": 1,
+    "highlights": [
+      "played with Shamate style",
+      "Shamate",
+      "no way to communicate"
+    ]
+  },
+{
+    "track": 10,
+    "message": 2,
+    "highlights": [
+      "hairstyle"
+    ]
+  },
+{
+    "track": 11,
+    "message": 0,
+    "highlights": [
+      "Making money, buying a car, buying a house",
+      "everyone has those dreams",
+      "went out to work",
+      "very hard to achieve"
+    ]
+  },
+{
+    "track": 11,
+    "message": 1,
+    "highlights": [
+      "gave up",
+      "basically impossible",
+      "very hard to realize"
+    ]
+  },
+{
+    "track": 11,
+    "message": 2,
+    "highlights": [
+      "I chose to give up",
+      "I chose freedom",
+      "that’s impossible"
+    ]
+  },
+{
+    "track": 12,
+    "message": 0,
+    "highlights": [
+      "For people like us",
+      "money",
+      "work ten or twenty years"
+    ]
+  },
+{
+    "track": 12,
+    "message": 1,
+    "highlights": [
+      "never even thought about them",
+      "dared to think about them"
+    ]
+  },
+{
+    "track": 12,
+    "message": 2,
+    "highlights": [
+      "can’t afford to consume here"
+    ]
+  },
+{
+    "track": 12,
+    "message": 4,
+    "highlights": [
+      "you won’t last long",
+      "pressure",
+      "make a few thousand"
+    ]
+  },
+{
+    "track": 12,
+    "message": 7,
+    "highlights": [
+      "rarely"
+    ]
+  },
+{
+    "track": 13,
+    "message": 0,
+    "highlights": [
+      "the same as us",
+      "long hair",
+      "suited to survive",
+      "nobody had a job"
+    ]
+  },
+{
+    "track": 13,
+    "message": 1,
+    "highlights": [
+      "no money",
+      "no money either"
+    ]
+  },
+{
+    "track": 13,
+    "message": 2,
+    "highlights": [
+      "similar hairstyles"
+    ]
+  },
+{
+    "track": 13,
+    "message": 3,
+    "highlights": [
+      "your hair"
+    ]
+  },
+{
+    "track": 13,
+    "message": 5,
+    "highlights": [
+      "nobody had ideals",
+      "nobody talked about them",
+      "weren’t working",
+      "couldn’t realize them"
+    ]
+  },
+{
+    "track": 13,
+    "message": 6,
+    "highlights": [
+      "become a joke"
+    ]
+  },
+{
+    "track": 14,
+    "message": 0,
+    "highlights": [
+      "Shamate",
+      "Canxue Zhangai",
+      "Shamate or non-mainstream",
+      "a feeling of having a home",
+      "the same kind of people",
+      "abnormal",
+      "keep going",
+      "It was a home",
+      "family"
+    ]
+  },
+{
+    "track": 15,
+    "message": 0,
+    "highlights": [
+      "society was different",
+      "hair was too long",
+      "too young",
+      "appearance",
+      "wasn’t reliable",
+      "changed jobs many times",
+      "waiter",
+      "food runner",
+      "laundry",
+      "moving jobs",
+      "washing cars",
+      "internet cafés",
+      "network administrator",
+      "only twenty yuan",
+      "didn’t dare spend it carelessly"
+    ]
+  },
+{
+    "track": 15,
+    "message": 1,
+    "highlights": [
+      "urban village",
+      "small room",
+      "especially dim",
+      "life felt meaningless"
+    ]
+  },
+{
+    "track": 16,
+    "message": 0,
+    "highlights": [
+      "small wish",
+      "get married",
+      "Shamate wedding",
+      "Shamate look",
+      "little-girl version",
+      "remember it for many years",
+      "keep it as something precious"
+    ]
+  },
+{
+    "track": 17,
+    "message": 0,
+    "highlights": [
+      "official cleanup",
+      "couldn’t make any videos",
+      "nobody came in",
+      "could be found",
+      "called the platform to ask",
+      "consulting them"
+    ]
+  },
+{
+    "track": 17,
+    "message": 1,
+    "highlights": [
+      "caused harm to society",
+      "danced",
+      "dancing to make everyone happy",
+      "suddenly our account was blocked",
+      "couldn’t understand the reason"
+    ]
+  },
+  {
+      "track": 18,
+      "message": 0,
+      "highlights": [
+        "everyone went outside to work",
+        "if you stay trapped at home, things will definitely be difficult",
+        "if you go out, there will be a road",
+        "Rural people",
+        "city people",
+        "different from them",
+        "difficult",
+        "work"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 1,
+      "highlights": [
+        "Rural people would play",
+        "city things",
+        "City people",
+        "rural people"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 2,
+      "highlights": [
+        "maybe they could only pursue Shamate",
+        "Everyone pursues different things",
+        "things from the countryside",
+        "they didn’t have anything else",
+        "rural people",
+        "city people",
+        "tacky",
+        "pursue"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 3,
+      "highlights": [
+        "Houses and cars were too far away"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 4,
+      "highlights": [
+        "the first thing I thought of was entering a factory",
+        "everyone thought the same way",
+        "Why did we come out? To enter a factory",
+        "Was there nothing else?",
+        "There was nothing else",
+        "You only had that one choice",
+        "only one option",
+        "society",
+        "factory"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 5,
+      "highlights": [
+        "Hair was one interesting thing",
+        "I could only play with hair",
+        "couldn’t afford",
+        "hair"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 6,
+      "highlights": [
+        "As long as this society and this world still exist",
+        "everyone has gone to university",
+        "maybe it still won’t",
+        "education becomes better",
+        "the countryside won’t disappear",
+        "it might disappear",
+        "the countryside disappears",
+        "not respected",
+        "people who are eliminated",
+        "hurt"
+      ]
+    },
+  {
+      "track": 18,
+      "message": 7,
+      "highlights": [
+        "Shamate will survive in another form",
+        "another form",
+        "another way",
+        "survive"
+      ]
+    }
+
+];
+
+englishHighlightGroups.forEach((item) => {
+  const track = interviews[item.track];
+  if (!track || !track.messages || !track.messages[item.message]) return;
+  track.messages[item.message].highlightsEn = item.highlights || [];
+});
+
+/* ===== FINAL: preload interview backgrounds ===== */
+
+const fullScreenBackground = "interview-backgrounds/bg-full.jpg";
+
+const loadedBackgrounds = new Set();
+
+interviews.forEach((item) => {
+  if (item.bg) {
+    const img = new Image();
+
+    img.onload = () => {
+      loadedBackgrounds.add(item.bg);
+    };
+
+    img.src = item.bg;
+  }
+});
+
+const fullScreenImg = new Image();
+
+fullScreenImg.onload = () => {
+  loadedBackgrounds.add(fullScreenBackground);
+};
+
+fullScreenImg.src = fullScreenBackground;
+    const audio = document.getElementById("audioPlayer");
+    const interviewPanel = document.getElementById("interviewPanel");
+const panelToggle = document.getElementById("panelToggle");
+    const trackList = document.getElementById("trackList");
+    const mainPlayBtn = document.getElementById("mainPlayBtn");
+    const currentTitle = document.getElementById("currentTitle");
+    const currentSub = document.getElementById("currentSub");
+const qqChat = document.getElementById("qqChat");
+const currentTime = document.getElementById("currentTime");
+const langToggle = document.getElementById("langToggle");
+const visualStage = document.querySelector(".visual-stage");
+const stageBgA = document.getElementById("stageBgA");
+const stageBgB = document.getElementById("stageBgB");
+
+let visibleStageBg = stageBgA;
+let hiddenStageBg = stageBgB;
+let currentStageBg = "interview-backgrounds/bg-01.jpg";
+let bgSwitchToken = 0;
+    const canvas = document.getElementById("audioCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let currentIndex = 0;
+    let audioContext;
+    let analyser;
+    let sourceNode;
+    let dataArray;
+    let isAudioReady = false;
+    let qqUserScrolledUp = false;
+    let currentLang = "zh";
+
+    function getMessageText(message) {
+  if (currentLang === "en" && message.textEn) {
+    return message.textEn;
+  }
+
+  return message.text || "";
+}
+function updateQQReadingState() {
+  if (!qqChat) return;
+
+  const distanceFromBottom =
+    qqChat.scrollHeight - qqChat.scrollTop - qqChat.clientHeight;
+
+  qqUserScrolledUp = distanceFromBottom > 80;
+}
+
+function scrollQQToBottom(force = false) {
+  if (!qqChat) return;
+
+  if (force || !qqUserScrolledUp) {
+    qqChat.scrollTop = qqChat.scrollHeight;
+  }
+}
+
+if (qqChat) {
+  qqChat.addEventListener("scroll", updateQQReadingState);
+}
+if (langToggle) {
+  langToggle.addEventListener("click", () => {
+    currentLang = currentLang === "zh" ? "en" : "zh";
+
+    langToggle.textContent = currentLang === "zh" ? "中 / EN" : "EN / 中";
+
+    clearQQChat();
+    syncQQChatToAudio();
+
+    if (audio.ended || audio.currentTime >= audio.duration) {
+      finishQQChat();
+    }
+  });
+}
+
+    function clearQQChat() {
+  if (!qqChat) return;
+  qqChat.innerHTML = "";
+  qqUserScrolledUp = false;
+}
+
+
+function escapeHTML(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function getMessageHighlights(message) {
+  const highlights = currentLang === "en" ? message.highlightsEn : message.highlights;
+  return Array.isArray(highlights) ? highlights.filter(Boolean) : [];
+}
+
+function renderHighlightedText(fullText, visibleCount, highlights) {
+  const text = String(fullText || "");
+  const maxVisible = Math.min(text.length, Math.max(0, visibleCount));
+
+  if (!maxVisible) return "";
+
+  const ranges = [];
+
+  highlights.forEach((phrase) => {
+    const key = String(phrase || "");
+    if (!key) return;
+
+    let from = 0;
+    while (from < text.length) {
+      const start = text.indexOf(key, from);
+      if (start === -1) break;
+
+      const end = start + key.length;
+      if (start < maxVisible && end > 0) {
+        ranges.push([
+          Math.max(0, start),
+          Math.min(maxVisible, end)
+        ]);
+      }
+
+      from = start + key.length;
+    }
+  });
+
+  if (!ranges.length) {
+    return `<span class="qq-normal">${escapeHTML(text.slice(0, maxVisible))}</span>`;
+  }
+
+  ranges.sort((a, b) => a[0] - b[0]);
+
+  const merged = [];
+  ranges.forEach((range) => {
+    if (!merged.length || range[0] > merged[merged.length - 1][1]) {
+      merged.push(range);
+    } else {
+      merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], range[1]);
+    }
+  });
+
+  let html = "";
+  let cursor = 0;
+
+  merged.forEach(([start, end]) => {
+    if (start > cursor) {
+      html += `<span class="qq-normal">${escapeHTML(text.slice(cursor, start))}</span>`;
+    }
+
+    html += `<span class="qq-highlight">${escapeHTML(text.slice(start, end))}</span>`;
+    cursor = end;
+  });
+
+  if (cursor < maxVisible) {
+    html += `<span class="qq-normal">${escapeHTML(text.slice(cursor, maxVisible))}</span>`;
+  }
+
+  return html;
+}
+
+function createQQBubble(message, index, speakerName) {
+  if (!qqChat) return null;
+
+  const bubble = document.createElement("div");
+  bubble.className = "qq-message from-them";
+  bubble.dataset.messageIndex = String(index);
+
+  const name = document.createElement("div");
+  name.className = "qq-name";
+  name.textContent = speakerName;
+
+  const text = document.createElement("span");
+text.className = "qq-text";
+
+const typed = document.createElement("span");
+typed.className = "qq-typed";
+
+const cursor = document.createElement("span");
+cursor.className = "qq-cursor";
+
+text.appendChild(typed);
+text.appendChild(cursor);
+
+bubble.appendChild(name);
+bubble.appendChild(text);
+qqChat.appendChild(bubble);
+
+  return bubble;
+}
+function finishQQChat() {
+  if (!qqChat) return;
+
+  const item = interviews[currentIndex];
+  const messages = item.messages || [];
+
+  messages.forEach((message, index) => {
+    let bubble = qqChat.querySelector(`[data-message-index="${index}"]`);
+
+    if (!bubble) {
+      bubble = createQQBubble(message, index, item.name);
+    }
+
+    const typedEl = bubble.querySelector(".qq-typed");
+    const cursorEl = bubble.querySelector(".qq-cursor");
+
+    if (typedEl) {
+      const fullText = getMessageText(message);
+      typedEl.innerHTML = renderHighlightedText(
+        fullText,
+        fullText.length,
+        getMessageHighlights(message)
+      );
+    }
+
+    if (cursorEl) {
+      cursorEl.classList.add("is-hidden");
+    }
+  });
+
+  scrollQQToBottom();
+}
+
+function syncQQChatToAudio() {
+  if (!qqChat) return;
+
+  const item = interviews[currentIndex];
+  const messages = item.messages || [];
+  const time = audio.currentTime || 0;
+
+  if (!messages.length) {
+    clearQQChat();
+    return;
+  }
+
+  messages.forEach((message, index) => {
+    const start = message.start;
+    const end = message.end || message.start + 2;
+    const text = getMessageText(message);
+
+    let bubble = qqChat.querySelector(`[data-message-index="${index}"]`);
+
+    if (time < start) {
+      if (bubble) bubble.remove();
+      return;
+    }
+
+    if (!bubble) {
+      bubble = createQQBubble(message, index, item.name);
+    }
+
+    const typedEl = bubble.querySelector(".qq-typed");
+const cursorEl = bubble.querySelector(".qq-cursor");
+
+const duration = Math.max(0.3, end - start);
+const progress = Math.min(1, Math.max(0, (time - start) / duration));
+const visibleCount = Math.floor(text.length * progress);
+
+if (typedEl) {
+  typedEl.innerHTML = renderHighlightedText(
+    text,
+    visibleCount,
+    getMessageHighlights(message)
+  );
+}
+if (cursorEl) {
+  cursorEl.classList.toggle("is-hidden", progress >= 1);
+}
+  });
+
+  scrollQQToBottom();
+}
+
+    function renderTracks() {
+      trackList.innerHTML = "";
+
+      interviews.forEach((item, index) => {
+        const button = document.createElement("button");
+        button.className = "track-item" + (index === currentIndex ? " is-active" : "");
+        button.type = "button";
+
+        button.innerHTML = `
+  <div class="track-title">${item.name}</div>
+
+  <div class="track-detail">
+    <img class="track-portrait" src="${item.portrait}" alt="${item.name}">
+    <div class="track-age">${item.age}</div>
+  </div>
+
+  <div class="track-meta">
+    <span>${item.number}</span>
+  </div>
+
+  <div class="track-arrow">▶</div>
+`;
+
+        button.addEventListener("click", () => {
+          loadTrack(index, true);
+        });
+
+        trackList.appendChild(button);
+      });
+    }
+
+   function updateInterviewBackground(item) {
+  if (!stageBgA || !stageBgB) return;
+
+  const bg = item.bg || "interview-backgrounds/bg-01.jpg";
+
+  if (bg === currentStageBg) return;
+
+  const token = ++bgSwitchToken;
+
+  function showNewBackground() {
+    if (token !== bgSwitchToken) return;
+
+    hiddenStageBg.style.setProperty("background-image", `url("${bg}")`, "important");
+
+    hiddenStageBg.offsetHeight;
+
+    hiddenStageBg.classList.add("is-visible");
+    visibleStageBg.classList.remove("is-visible");
+
+    const oldVisible = visibleStageBg;
+    visibleStageBg = hiddenStageBg;
+    hiddenStageBg = oldVisible;
+
+    currentStageBg = bg;
+  }
+
+  if (loadedBackgrounds.has(bg)) {
+    showNewBackground();
+    return;
+  }
+
+  const img = new Image();
+
+  img.onload = () => {
+    loadedBackgrounds.add(bg);
+    showNewBackground();
+  };
+
+  img.onerror = () => {
+    console.warn("Background image failed to load:", bg);
+  };
+
+  img.src = bg;
+}
+    function loadTrack(index, autoplay = false) {
+  currentIndex = index;
+  const item = interviews[currentIndex];
+
+  updateInterviewBackground(item);
+
+  audio.src = item.src;
+currentTitle.innerHTML = "";
+currentSub.textContent = "";
+clearQQChat();
+syncQQChatToAudio();
+mainPlayBtn.textContent = "▶";
+      document.querySelectorAll(".track-item").forEach((el, i) => {
+  el.classList.toggle("is-active", i === currentIndex);
+});
+
+const activeTrack = document.querySelector(".track-item.is-active");
+
+if (activeTrack) {
+  requestAnimationFrame(() => {
+    activeTrack.scrollIntoView({
+      block: "center",
+      behavior: "smooth"
+    });
+  });
+}
+
+      if (autoplay) {
+        startAudio().then(() => audio.play());
+      }
+    }
+
+    async function setupAudio() {
+      if (isAudioReady) return;
+
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+
+      sourceNode = audioContext.createMediaElementSource(audio);
+      sourceNode.connect(analyser);
+      analyser.connect(audioContext.destination);
+
+      dataArray = new Uint8Array(analyser.frequencyBinCount);
+      isAudioReady = true;
+    }
+
+    async function startAudio() {
+      await setupAudio();
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+    }
+
+    mainPlayBtn.addEventListener("click", async () => {
+      await startAudio();
+
+      if (audio.paused) {
+        audio.play();
+      } else {
+        audio.pause();
+      }
+    });
+
+    audio.addEventListener("play", () => {
+      mainPlayBtn.textContent = "Ⅱ";
+    });
+
+    audio.addEventListener("pause", () => {
+      mainPlayBtn.textContent = "▶";
+    });
+
+    audio.addEventListener("ended", () => {
+  mainPlayBtn.textContent = "▶";
+  finishQQChat();
+});
+
+    audio.addEventListener("timeupdate", () => {
+  const remaining = audio.duration - audio.currentTime;
+
+  currentTime.textContent = formatTime(remaining);
+  syncQQChatToAudio();
+});
+audio.addEventListener("loadedmetadata", () => {
+  currentTime.textContent = formatTime(audio.duration);
+});
+audio.addEventListener("seeked", () => {
+  clearQQChat();
+  syncQQChatToAudio();
+});
+
+audio.addEventListener("play", () => {
+  syncQQChatToAudio();
+});
+
+audio.addEventListener("ended", () => {
+  syncQQChatToAudio();
+});
+
+    function formatTime(seconds) {
+      if (!Number.isFinite(seconds)) return "00:00";
+      const m = Math.floor(seconds / 60);
+      const s = Math.floor(seconds % 60);
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * window.devicePixelRatio);
+      canvas.height = Math.floor(rect.height * window.devicePixelRatio);
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+
+    function clearVisualStage() {
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, w, h);
+
+  return { w, h };
+}
+
+function getCurrentVisualMode() {
+  return interviews[currentIndex]?.visual || "waves";
+}
+
+function drawWaves(power, time) {
+  const { w, h } = clearVisualStage();
+
+  ctx.strokeStyle = "#FF5874";
+  ctx.lineWidth = 8 + power * 34;
+  ctx.shadowColor = "rgba(210, 65, 89, 0.55)";
+  ctx.shadowBlur = 10 + power * 36;
+
+  for (let i = 0; i < 6; i++) {
+    const offset = i * 0.12;
+    const amp = 45 + power * 180 + i * 8;
+
+    ctx.beginPath();
+
+    for (let x = -80; x <= w + 80; x += 18) {
+      const y =
+        h * (0.28 + offset) +
+        Math.sin(x * 0.01 + time * 1.8 + i) * amp * 0.22 +
+        Math.sin(x * 0.024 + time * 1.1) * amp * 0.12;
+
+      if (x === -80) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 0;
+}
+
+function drawRings(power, time) {
+  const { w, h } = clearVisualStage();
+
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+  const base = 40 + power * 80;
+
+  ctx.strokeStyle = "#FF5874";
+  ctx.shadowColor = "rgba(210, 65, 89, 0.45)";
+  ctx.shadowBlur = 16 + power * 26;
+
+  for (let i = 0; i < 5; i++) {
+    ctx.beginPath();
+    ctx.lineWidth = 4 + power * 12;
+    ctx.arc(
+      cx,
+      cy,
+      base + i * (34 + power * 10) + Math.sin(time * 2 + i) * 6,
+      0,
+      Math.PI * 2
+    );
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 0;
+}
+
+function drawBars(power, time) {
+  const { w, h } = clearVisualStage();
+
+  const barCount = 24;
+  const gap = 10;
+  const totalGap = gap * (barCount - 1);
+  const barWidth = (w * 0.62 - totalGap) / barCount;
+  const startX = (w - (barCount * barWidth + totalGap)) / 2;
+
+  ctx.fillStyle = "#FF5874";
+  ctx.shadowColor = "rgba(210, 65, 89, 0.35)";
+  ctx.shadowBlur = 10 + power * 20;
+
+  for (let i = 0; i < barCount; i++) {
+    const x = startX + i * (barWidth + gap);
+    const noise = Math.sin(time * 3 + i * 0.6) * 0.5 + 0.5;
+    const barH = 40 + noise * (h * 0.45) * (0.35 + power);
+
+    ctx.fillRect(x, h * 0.5 - barH / 2, barWidth, barH);
+  }
+
+  ctx.shadowBlur = 0;
+}
+
+function drawRays(power, time) {
+  const { w, h } = clearVisualStage();
+
+  const cx = w * 0.52;
+  const cy = h * 0.52;
+  const rayCount = 18;
+
+  ctx.strokeStyle = "#FF5874";
+  ctx.lineWidth = 4 + power * 14;
+  ctx.shadowColor = "rgba(210, 65, 89, 0.45)";
+  ctx.shadowBlur = 12 + power * 28;
+
+  for (let i = 0; i < rayCount; i++) {
+    const angle = (Math.PI * 2 / rayCount) * i + time * 0.25;
+    const inner = 30 + power * 20;
+    const outer = 120 + power * 220 + Math.sin(time * 2 + i) * 18;
+
+    const x1 = cx + Math.cos(angle) * inner;
+    const y1 = cy + Math.sin(angle) * inner;
+    const x2 = cx + Math.cos(angle) * outer;
+    const y2 = cy + Math.sin(angle) * outer;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 0;
+}
+function drawDots(power, time) {
+  const { w, h } = clearVisualStage();
+
+  const cols = 18;
+  const rows = 10;
+  const gapX = w / cols;
+  const gapY = h / rows;
+
+  ctx.fillStyle = "#FF5874";
+  ctx.shadowColor = "rgba(255, 88, 116, 0.45)";
+  ctx.shadowBlur = 8 + power * 28;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const px = gapX * x + gapX / 2;
+      const py = gapY * y + gapY / 2;
+      const pulse = Math.sin(time * 4 + x * 0.6 + y * 0.4) * 0.5 + 0.5;
+      const r = 4 + pulse * 8 + power * 24;
+
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  ctx.shadowBlur = 0;
+}
+
+function drawHair(power, time) {
+  const { w, h } = clearVisualStage();
+
+  const cx = w * 0.5;
+  const cy = h * 0.52;
+  const count = 56;
+
+  ctx.strokeStyle = "#FF5874";
+  ctx.lineWidth = 3 + power * 8;
+  ctx.shadowColor = "rgba(255, 88, 116, 0.55)";
+  ctx.shadowBlur = 10 + power * 30;
+
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i;
+    const shake = Math.sin(time * 5 + i) * 22;
+    const inner = 40 + power * 30;
+    const outer = 120 + power * 260 + shake;
+
+    const x1 = cx + Math.cos(angle) * inner;
+    const y1 = cy + Math.sin(angle) * inner;
+    const x2 = cx + Math.cos(angle) * outer;
+    const y2 = cy + Math.sin(angle) * outer;
+
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+
+  ctx.beginPath();
+  ctx.fillStyle = "#53BDFF";
+  ctx.arc(cx, cy, 38 + power * 45, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+}
+
+function drawGlitch(power, time) {
+  const { w, h } = clearVisualStage();
+
+  ctx.fillStyle = "#FF5874";
+  ctx.shadowColor = "rgba(255, 88, 116, 0.4)";
+  ctx.shadowBlur = 8 + power * 20;
+
+  const blockCount = 20 + Math.floor(power * 70);
+
+  for (let i = 0; i < blockCount; i++) {
+    const x = Math.random() * w;
+    const y = Math.random() * h;
+    const bw = 30 + Math.random() * 180 * (0.5 + power);
+    const bh = 8 + Math.random() * 50 * (0.5 + power);
+
+    ctx.fillRect(x, y, bw, bh);
+  }
+
+  ctx.strokeStyle = "#53BDFF";
+  ctx.lineWidth = 2;
+
+  for (let i = 0; i < 10; i++) {
+    const y = (h / 10) * i + Math.sin(time * 3 + i) * power * 40;
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(w, y);
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 0;
+}
+
+function drawSpiral(power, time) {
+  const { w, h } = clearVisualStage();
+
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+
+  ctx.strokeStyle = "#FF5874";
+  ctx.lineWidth = 4 + power * 12;
+  ctx.shadowColor = "rgba(255, 88, 116, 0.55)";
+  ctx.shadowBlur = 12 + power * 30;
+
+  ctx.beginPath();
+
+  for (let i = 0; i < 420; i++) {
+    const t = i * 0.08;
+    const radius = i * 0.7 + power * 90;
+    const angle = t + time * 1.5;
+
+    const x = cx + Math.cos(angle) * radius;
+    const y = cy + Math.sin(angle) * radius;
+
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  }
+
+  ctx.stroke();
+  ctx.shadowBlur = 0;
+}
+
+function drawByMode(mode, power, time) {
+  switch (mode) {
+    case "rings":
+      drawRings(power, time);
+      break;
+
+    case "bars":
+      drawBars(power, time);
+      break;
+
+    case "rays":
+      drawRays(power, time);
+      break;
+
+    case "dots":
+      drawDots(power, time);
+      break;
+
+    case "hair":
+      drawHair(power, time);
+      break;
+
+    case "glitch":
+      drawGlitch(power, time);
+      break;
+
+    case "spiral":
+      drawSpiral(power, time);
+      break;
+
+    case "waves":
+    default:
+      drawWaves(power, time);
+      break;
+  }
+}
+
+function drawIdleVisual() {
+  const mode = getCurrentVisualMode();
+  drawByMode(mode, 0.12, performance.now() * 0.001);
+}
+
+function drawAudioVisual() {
+  if (!analyser || !dataArray || audio.paused) {
+    drawIdleVisual();
+    requestAnimationFrame(drawAudioVisual);
+    return;
+  }
+
+  analyser.getByteFrequencyData(dataArray);
+
+  let average = 0;
+  for (let i = 0; i < dataArray.length; i++) {
+    average += dataArray[i];
+  }
+  average = average / dataArray.length;
+
+  const power = average / 255;
+  const time = performance.now() * 0.0015;
+  const mode = getCurrentVisualMode();
+
+  drawByMode(mode, power, time);
+
+  requestAnimationFrame(drawAudioVisual);
+}
+
+    renderTracks();
+    loadTrack(0, false);
+    resizeCanvas();
+    // drawAudioVisual();
+
+    /* ===== AUTO START VOICE AFTER ENTERING PAGE =====
+       进入声音页后，先停 2 秒，再自动播放当前第一条采访。
+       如果浏览器因为自动播放限制拦截，就保留播放按钮，点击一次即可继续。
+    */
+    setTimeout(() => {
+      if (!audio || !audio.paused) return;
+
+      startAudio()
+        .then(() => audio.play())
+        .catch((error) => {
+          console.warn("Autoplay was blocked by the browser:", error);
+          mainPlayBtn.textContent = "▶";
+        });
+    }, 2000);
+
+   if (panelToggle && interviewPanel) {
+  panelToggle.addEventListener("click", () => {
+    const isCollapsed = interviewPanel.classList.toggle("is-collapsed");
+
+    document.body.classList.toggle("panel-collapsed", isCollapsed);
+
+    panelToggle.innerHTML = `
+  <img class="interview-ui-icon" src="./icons/icon-list.png" alt="">
+  <span>列表 LIST</span>
+`;
+
+    if (isCollapsed) {
+      updateInterviewBackground({
+        bg: fullScreenBackground
+      });
+    } else {
+      updateInterviewBackground(interviews[currentIndex]);
+    }
+
+    setTimeout(() => {
+      resizeCanvas();
+    }, 560);
+  });
+}
+    window.addEventListener("resize", resizeCanvas);
+  </script>
+</body>
+</html>
