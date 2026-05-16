@@ -1527,6 +1527,174 @@ body.interview-entering .history-transition-panel.is-active .history-line-4 {
   display: none !important;
 }
 
+
+
+/* ===== FINAL PATCH: colorful loading progress bar for section entry pages ===== */
+.entry-progress {
+  position: fixed !important;
+  left: 50% !important;
+  top: calc(50% + 132px) !important;
+  width: min(520px, 58vw) !important;
+  z-index: 11050 !important;
+  transform: translateX(-50%) !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  transition: opacity 0.35s ease, visibility 0.35s ease !important;
+}
+
+.entry-progress.is-running {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+.entry-progress-track {
+  position: relative !important;
+  width: 100% !important;
+  height: 8px !important;
+  overflow: hidden !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,0.18) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.72),
+    0 0 18px rgba(255,242,0,0.22),
+    0 0 26px rgba(0,255,213,0.18) !important;
+}
+
+.entry-progress-fill {
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  width: 0% !important;
+  height: 100% !important;
+  border-radius: inherit !important;
+  background: linear-gradient(90deg,
+    #FBFF00 0%,
+    #87EF00 15%,
+    #00FFD5 32%,
+    #2F6BFF 50%,
+    #B23CFF 68%,
+    #FF2A2A 84%,
+    #FF8A00 100%) !important;
+  background-size: 220% 100% !important;
+  box-shadow:
+    0 0 8px rgba(255,255,255,0.88),
+    0 0 20px rgba(0,255,213,0.45),
+    0 0 32px rgba(255,42,42,0.35) !important;
+  transition: width linear !important;
+  animation: introColorMove 4.8s linear infinite !important;
+}
+
+.entry-progress-percent {
+  display: block !important;
+  margin-top: 12px !important;
+  text-align: center !important;
+  font-family: Arial, "Helvetica Neue", sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.03em !important;
+  color: transparent !important;
+  background: linear-gradient(90deg, #FBFF00, #87EF00, #00FFD5, #2F6BFF, #B23CFF, #FF2A2A, #FF8A00) !important;
+  background-size: 240% auto !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  -webkit-text-stroke: 0.35px rgba(255,255,255,0.82) !important;
+  text-shadow:
+    1px 1px 0 rgba(16,16,16,0.5),
+    0 0 8px rgba(255,242,0,0.45),
+    0 0 16px rgba(0,255,213,0.25) !important;
+  animation: introColorMove 7s linear infinite !important;
+}
+
+body.hair-archive-entering .entry-progress {
+  top: calc(50% + 112px) !important;
+}
+
+body.interview-entering .entry-progress {
+  top: calc(50% + 94px) !important;
+}
+
+
+
+/* ===== FINAL FIX: real colorful cell-by-cell loading bar ===== */
+.entry-progress {
+  top: calc(50% + 142px) !important;
+  width: min(560px, 62vw) !important;
+}
+
+.entry-progress-track {
+  position: relative !important;
+  width: 100% !important;
+  height: 24px !important;
+  padding: 2px !important;
+  display: flex !important;
+  gap: 3px !important;
+  overflow: hidden !important;
+  border-radius: 0 !important;
+  background: rgba(0, 0, 0, 0.28) !important;
+  border: 2px solid rgba(255,255,255,0.96) !important;
+  box-shadow:
+    0 0 10px rgba(255,255,255,0.54),
+    0 0 22px rgba(255,242,0,0.32),
+    0 0 34px rgba(0,255,213,0.25) !important;
+}
+
+.entry-progress-track::before,
+.entry-progress-track::after {
+  content: none !important;
+  display: none !important;
+}
+
+.entry-progress-fill {
+  display: none !important;
+}
+
+.entry-progress-cell {
+  position: relative !important;
+  flex: 1 1 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  background: rgba(0, 0, 0, 0.42) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.58) !important;
+}
+
+.entry-progress-cell::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  transform: scaleX(var(--cell-fill, 0)) !important;
+  transform-origin: left center !important;
+  background:
+    linear-gradient(90deg, var(--cell-color-a, #FBFF00), var(--cell-color-b, #00FFD5)) !important;
+  box-shadow:
+    0 0 8px rgba(255,255,255,0.8),
+    0 0 16px var(--cell-glow, rgba(0,255,213,0.5)) !important;
+  transition: transform 0.08s linear !important;
+}
+
+.entry-progress-cell.is-lit::before {
+  animation: cellColorPulse 1.8s ease-in-out infinite alternate !important;
+}
+
+@keyframes cellColorPulse {
+  0% { filter: saturate(1.15) brightness(1); }
+  100% { filter: saturate(1.9) brightness(1.22); }
+}
+
+.entry-progress-percent {
+  margin-top: 12px !important;
+}
+
+body.hair-archive-entering .entry-progress {
+  top: calc(50% + 122px) !important;
+}
+
+body.interview-entering .entry-progress {
+  top: calc(50% + 104px) !important;
+}
+
 </style>
 
   <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer/dist/model-viewer.min.js"></script>
@@ -1608,6 +1776,13 @@ body.interview-entering .history-transition-panel.is-active .history-line-4 {
       </div>
     </div>
 
+    <div class="entry-progress" id="entryProgress" aria-hidden="true">
+      <div class="entry-progress-track">
+        <div class="entry-progress-fill" id="entryProgressFill"></div>
+      </div>
+      <div class="entry-progress-percent" id="entryProgressPercent">0%</div>
+    </div>
+
     <nav class="home-top-menu">
   <a class="home-top-link history-link app-button" id="enterArchive" href="archive.html" data-text="来路 Traces">
     <img class="app-icon" src="icons/icon-traces.png" alt="">
@@ -1684,6 +1859,12 @@ body.interview-entering .history-transition-panel.is-active .history-line-4 {
     const enterInterview = document.getElementById("enterInterview");
     const listClose = document.getElementById("listClose");
     const historyTransitionPanel = document.getElementById("historyTransitionPanel");
+    const entryProgress = document.getElementById("entryProgress");
+    const entryProgressTrack = document.querySelector(".entry-progress-track");
+    const entryProgressFill = document.getElementById("entryProgressFill");
+    const entryProgressPercent = document.getElementById("entryProgressPercent");
+    let entryProgressRaf = null;
+
 
     function setTransitionLine(index, zhText, enText) {
       const line = document.querySelector(`.history-line-${index}`);
@@ -1705,12 +1886,104 @@ body.interview-entering .history-transition-panel.is-active .history-line-4 {
       setTransitionLine(4, "才可能行动", "can action become possible");
     }
 
+
+    const ENTRY_PROGRESS_CELL_COUNT = 24;
+    const ENTRY_PROGRESS_COLORS = [
+      ["#FBFF00", "#87EF00", "rgba(251,255,0,0.75)"],
+      ["#87EF00", "#00FFD5", "rgba(135,239,0,0.75)"],
+      ["#00FFD5", "#2F6BFF", "rgba(0,255,213,0.75)"],
+      ["#2F6BFF", "#B23CFF", "rgba(47,107,255,0.75)"],
+      ["#B23CFF", "#FF2A2A", "rgba(178,60,255,0.75)"],
+      ["#FF2A2A", "#FF8A00", "rgba(255,42,42,0.75)"],
+      ["#FF8A00", "#FBFF00", "rgba(255,138,0,0.75)"]
+    ];
+
+    function ensureEntryProgressCells() {
+      if (!entryProgressTrack) return [];
+      let cells = Array.from(entryProgressTrack.querySelectorAll(".entry-progress-cell"));
+      if (cells.length === ENTRY_PROGRESS_CELL_COUNT) return cells;
+
+      cells.forEach((cell) => cell.remove());
+
+      for (let i = 0; i < ENTRY_PROGRESS_CELL_COUNT; i += 1) {
+        const cell = document.createElement("span");
+        cell.className = "entry-progress-cell";
+        const colors = ENTRY_PROGRESS_COLORS[i % ENTRY_PROGRESS_COLORS.length];
+        cell.style.setProperty("--cell-color-a", colors[0]);
+        cell.style.setProperty("--cell-color-b", colors[1]);
+        cell.style.setProperty("--cell-glow", colors[2]);
+        cell.style.setProperty("--cell-fill", "0");
+        entryProgressTrack.appendChild(cell);
+      }
+
+      return Array.from(entryProgressTrack.querySelectorAll(".entry-progress-cell"));
+    }
+
+    function paintEntryProgress(percent) {
+      const cells = ensureEntryProgressCells();
+      const raw = (Math.max(0, Math.min(100, percent)) / 100) * ENTRY_PROGRESS_CELL_COUNT;
+
+      cells.forEach((cell, index) => {
+        const amount = Math.max(0, Math.min(1, raw - index));
+        cell.style.setProperty("--cell-fill", amount.toFixed(3));
+        cell.classList.toggle("is-lit", amount > 0.001);
+      });
+    }
+
+    function resetEntryProgress() {
+      if (entryProgressRaf) {
+        cancelAnimationFrame(entryProgressRaf);
+        entryProgressRaf = null;
+      }
+      if (entryProgressFill) {
+        entryProgressFill.style.transitionDuration = "0ms";
+        entryProgressFill.style.width = "0%";
+      }
+      paintEntryProgress(0);
+      if (entryProgressPercent) {
+        entryProgressPercent.textContent = "0%";
+      }
+      if (entryProgress) {
+        entryProgress.classList.remove("is-running");
+        entryProgress.setAttribute("aria-hidden", "true");
+      }
+    }
+
+    function startEntryProgress(duration) {
+      resetEntryProgress();
+      if (!entryProgress || !entryProgressPercent) return;
+
+      ensureEntryProgressCells();
+      entryProgress.classList.add("is-running");
+      entryProgress.setAttribute("aria-hidden", "false");
+
+      const start = performance.now();
+
+      function tick(now) {
+        const precisePercent = Math.min(100, ((now - start) / duration) * 100);
+        const percent = Math.min(100, Math.round(precisePercent));
+        paintEntryProgress(precisePercent);
+        entryProgressPercent.textContent = percent + "%";
+
+        if (precisePercent < 100) {
+          entryProgressRaf = requestAnimationFrame(tick);
+        } else {
+          paintEntryProgress(100);
+          entryProgressPercent.textContent = "100%";
+          entryProgressRaf = null;
+        }
+      }
+
+      entryProgressRaf = requestAnimationFrame(tick);
+    }
+
     const INTRO_DURATION = 5700;
 
     const params = new URLSearchParams(window.location.search);
     const openModelDirectly = params.get("screen") === "model";
 
     function showModelHomeDirectly() {
+  resetEntryProgress();
   document.body.classList.add("home-ready");
   document.body.classList.remove(
     "history-entering",
@@ -1819,6 +2092,8 @@ enterArchive.addEventListener("click", (event) => {
     historyTransitionPanel.setAttribute("aria-hidden", "false");
   }
 
+  startEntryProgress(8600);
+
   setTimeout(() => {
     document.body.classList.add("history-fading-to-black");
 
@@ -1860,6 +2135,8 @@ if (enterHairArchive) {
       historyTransitionPanel.classList.add("is-active");
       historyTransitionPanel.setAttribute("aria-hidden", "false");
     }
+
+    startEntryProgress(7000);
 
     setTimeout(() => {
       document.body.classList.add("history-fading-to-black");
@@ -1903,6 +2180,8 @@ if (enterInterview) {
       historyTransitionPanel.classList.add("is-active");
       historyTransitionPanel.setAttribute("aria-hidden", "false");
     }
+
+    startEntryProgress(5600);
 
     setTimeout(() => {
       document.body.classList.add("history-fading-to-black");
